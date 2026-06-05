@@ -4,11 +4,12 @@ const WHITELIST = [
   { path: "/api/auth/login", method: "POST" },
   { path: "/api/auth/refresh", method: "POST" },
   { path: "/api/auth/logout", method: "POST" },
+  { path: "/api/staff", method: "POST" },
 ];
 
 const isWhitelisted = (req) =>
   WHITELIST.some(
-    (item) => item.path === req.path && item.method === req.method,
+    (item) => item.path === req.originalUrl && item.method === req.method,
   );
 
 const authenticate = (req, res, next) => {

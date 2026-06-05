@@ -41,15 +41,10 @@ const StaffSchema = new mongoose.Schema(
 );
 
 // Hash password trước khi lưu
-StaffSchema.pre("save", async function (next) {
-  if (!this.isModified("Password")) return next();
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.Password = await bcrypt.hash(this.Password, salt);
-    next();
-  } catch (err) {
-    next(err);
-  }
+StaffSchema.pre("save", async function () {
+  if (!this.isModified("Password")) return;
+  const salt = await bcrypt.genSalt(10);
+  this.Password = await bcrypt.hash(this.Password, salt);
 });
 
 // Method kiểm tra password

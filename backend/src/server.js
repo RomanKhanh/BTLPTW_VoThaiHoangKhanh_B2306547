@@ -23,6 +23,8 @@ app.use(authenticate);
 
 // Routes
 app.use("/api/auth", require("./routes/auth.route"));
+app.use("/api/staff", require("./routes/staff.route"));
+app.use("/api/publishers", require("./routes/publisher.route"));
 
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
