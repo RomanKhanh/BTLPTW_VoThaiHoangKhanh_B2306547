@@ -1,4 +1,4 @@
-const { Reader, Counter } = require("../models/");
+const { Reader, MonitorLoan, Counter } = require("../models/");
 
 async function getNextReaderCode() {
   const counter = await Counter.findByIdAndUpdate(
@@ -32,4 +32,43 @@ exports.getReaderByMaDocGia = async (MaDocGia) => {
     };
   }
   return reader;
+};
+
+exports.updateReader = async (MaDocGia, data) => {
+  delete data.MaDocGia;
+  const reader = await Reader.findOneAndUpdate({ MaDocGia }, data, {
+    new: true,
+    runValidators: true,
+  });
+  if (!reader) {
+    throw {
+      status: 404,
+      message: `Không tìm thấy độc giả với mã ${MaDocGia}`,
+    };
+  }
+  return reader;
+};
+
+exports.deleteReader = async (MaDocGia) => {
+  const reader = await Reader.findOne({ MaDocGia });
+  if (!reader) {
+    throw {
+      status: 400,
+      message: "Không tìm thấy độc giả hợp lệ",
+    };
+  }
+  const borrowing = await MonitorLoan.findOne({
+    MaDocGia: reader._id,
+    NgayTra: null,
+  });
+  if (borrowing) {
+    throw {
+      status: 400,
+      message: "Không thể xóa vì độc giả còn mượn sách chưa trả",
+    };
+  }
+  await Reader.deleteOne({ _id: reader._id });
+  return {
+    message: "Delete reader successfully",
+  };
 };

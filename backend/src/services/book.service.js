@@ -1,4 +1,4 @@
-const { Book, Counter } = require("../models");
+const { Book, MonitorLoan, Counter } = require("../models");
 
 async function getNextBookCode() {
   const counter = await Counter.findByIdAndUpdate(
@@ -49,12 +49,26 @@ exports.updateBook = async (MaSach, updateData) => {
 };
 
 exports.deleteBook = async (MaSach) => {
-  const deletedBook = await Book.findOneAndDelete({ MaSach });
-  if (!deletedBook) {
+  const book = await Book.findOne({ MaSach });
+  if (!book) {
     throw {
       status: 404,
-      message: "Book not found",
+      message: "Không tìm thấy sách hợp lệ",
     };
   }
-  return deletedBook;
+  const borrowing = await MonitorLoan.findOne({
+    MaSach: book._id,
+    NgayTra: null,
+  });
+
+  if (borrowing) {
+    throw {
+      status: 400,
+      message: "Không thể xóa sách vì đang được mượn",
+    };
+  }
+  await Book.deleteOne({ _id: book._id });
+  return {
+    message: "Delete book successfully",
+  };
 };
