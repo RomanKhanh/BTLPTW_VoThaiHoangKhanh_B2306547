@@ -1,9 +1,17 @@
 const errorHandler = (err, req, res, next) => {
   // Lỗi từ service throw thủ công
   if (err.status) {
-    return res
-      .status(err.status)
-      .json({ success: false, message: err.message });
+    return res.status(err.status).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
+  if (err instanceof Error) {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
   }
 
   // Lỗi từ jwt.verify() hết hạn

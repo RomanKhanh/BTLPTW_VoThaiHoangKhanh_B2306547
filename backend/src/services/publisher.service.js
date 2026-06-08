@@ -1,17 +1,28 @@
-const { Publisher } = require("../models/");
+const { Publisher, Book, Counter } = require("../models/");
+
+async function getNextPublisherCode() {
+  const counter = await Counter.findByIdAndUpdate(
+    "publisher",
+    { $inc: { seq: 1 } },
+    {
+      new: true,
+      upsert: true,
+    },
+  );
+
+  return `NXB${String(counter.seq).padStart(3, "0")}`;
+}
 
 exports.createPublisher = async (data) => {
   const existingPublisher = await Publisher.findOne({
-    $or: [{ MaNXB: data.MaNXB }, { TenNXB: data.TenNXB }],
+    TenNXB: data.TenNXB,
   });
   if (existingPublisher) {
-    if (existingPublisher.MaNXB === data.MaNXB) {
-      throw { status: 400, message: "Mã NXB đã tồn tại" };
-    }
     if (existingPublisher.TenNXB === data.TenNXB) {
       throw { status: 400, message: "Tên NXB đã tồn tại" };
     }
   }
+  data.MaNXB = await getNextPublisherCode();
   const publisher = await Publisher.create(data);
   return publisher;
 };
@@ -63,13 +74,25 @@ exports.updatePublisher = async (MaNXB, data) => {
 };
 
 exports.deletePublisher = async (MaNXB) => {
-  const publisher = await Publisher.findOneAndDelete({ MaNXB });
+  const publisher = await Publisher.findOne({ MaNXB });
   if (!publisher) {
     throw {
       status: 404,
       message: "Nhà xuất bản không tồn tại",
     };
   }
+  // Kiểm tra sách thuộc NXB này
+  const bookExists = await Book.exists({
+    MaNXB: publisher._id,
+  });
+  if (bookExists) {
+    throw {
+      status: 400,
+      message:
+        "Không thể xóa nhà xuất bản vì vẫn còn sách thuộc nhà xuất bản này",
+    };
+  }
+  await Publisher.deleteOne({ _id: publisher._id });
   return {
     status: 200,
     message: "Xóa nhà xuất bản thành công",

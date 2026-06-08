@@ -22,7 +22,7 @@ const PublisherSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    collection: "nhaxuatban",
+    collection: "Publisher",
   },
 );
 

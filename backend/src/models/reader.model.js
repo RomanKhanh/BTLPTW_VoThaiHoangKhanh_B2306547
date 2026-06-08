@@ -40,7 +40,7 @@ const ReaderSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    collection: "docgia",
+    collection: "Reader",
   },
 );
 

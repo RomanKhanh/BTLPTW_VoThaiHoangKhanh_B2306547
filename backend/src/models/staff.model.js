@@ -36,7 +36,7 @@ const StaffSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    collection: "nhanvien",
+    collection: "Staff",
   },
 );
 

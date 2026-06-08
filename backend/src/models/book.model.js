@@ -32,7 +32,7 @@ const BookSchema = new mongoose.Schema(
     },
     MaNXB: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "NhaXuatBan",
+      ref: "Publisher",
       required: true,
     },
     NguonGocTacGia: {
@@ -43,7 +43,7 @@ const BookSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    collection: "sach",
+    collection: "Book",
   },
 );
 

@@ -8,6 +8,5 @@ router.get("/MaNXB/:MaNXB", publisherController.getPublisherByMaNXB);
 router.get("/TenNXB/:TenNXB", publisherController.getPublisherByTenNXB);
 router.patch("/MaNXB/:MaNXB", publisherController.updatePublisher);
 router.delete("/MaNXB/:MaNXB", publisherController.deletePublisher);
-``;
 
 module.exports = router;

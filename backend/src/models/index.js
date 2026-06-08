@@ -3,6 +3,7 @@ const Publisher = require("./publisher.model");
 const Reader = require("./reader.model");
 const MonitorLoan = require("./monitorLoan.model");
 const Staff = require("./staff.model");
+const Counter = require("./couter.model");
 
 const RefreshToken = require("./refreshToken.model");
 
@@ -13,4 +14,5 @@ module.exports = {
   MonitorLoan,
   Staff,
   RefreshToken,
+  Counter,
 };

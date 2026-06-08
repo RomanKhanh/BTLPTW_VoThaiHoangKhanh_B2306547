@@ -25,7 +25,11 @@ app.use(authenticate);
 app.use("/api/auth", require("./routes/auth.route"));
 app.use("/api/staff", require("./routes/staff.route"));
 app.use("/api/publishers", require("./routes/publisher.route"));
+app.use("/api/books", require("./routes/book.route"));
+app.use("/api/monitor-loans", require("./routes/monitorLoan.route"));
+app.use("/api/readers", require("./routes/reader.route"));
 
+// Error handling middleware
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
 

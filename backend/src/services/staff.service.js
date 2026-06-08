@@ -1,11 +1,23 @@
-const { Staff } = require("../models/");
+const { Staff, Counter } = require("../models/");
+
+async function getNextStaffCode() {
+  const counter = await Counter.findByIdAndUpdate(
+    "staff",
+    { $inc: { seq: 1 } },
+    {
+      new: true,
+      upsert: true,
+    },
+  );
+
+  return `NV${String(counter.seq).padStart(3, "0")}`;
+}
 
 exports.createStaff = async (data) => {
-  const existingStaff = await Staff.findOne({ MSNV: data.MSNV });
-  if (existingStaff) {
-    throw { status: 400, message: "MSNV đã tồn tại" };
-  }
+  data.MSNV = await getNextStaffCode();
+
   const staff = await Staff.create(data);
+
   return {
     MSNV: staff.MSNV,
     HoTenNV: staff.HoTenNV,
@@ -41,16 +53,20 @@ exports.getStaffByMSNV = async (MSNV) => {
 };
 
 exports.updateStaff = async (MSNV, data) => {
+  delete data.MSNV;
+
   const staff = await Staff.findOneAndUpdate({ MSNV }, data, {
     new: true,
     runValidators: true,
   }).select("-Password");
+
   if (!staff) {
     throw {
       status: 404,
       message: "Nhân viên không tồn tại",
     };
   }
+
   return {
     MSNV: staff.MSNV,
     HoTenNV: staff.HoTenNV,

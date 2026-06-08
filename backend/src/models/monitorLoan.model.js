@@ -4,12 +4,12 @@ const MonitorLoanSchema = new mongoose.Schema(
   {
     MaDocGia: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "DocGia",
+      ref: "Reader",
       required: true,
     },
     MaSach: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Sach",
+      ref: "Book",
       required: true,
     },
     NgayMuon: {
@@ -24,7 +24,7 @@ const MonitorLoanSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    collection: "theodoimuonsach",
+    collection: "MonitorLoan",
   },
 );
 
