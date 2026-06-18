@@ -10,11 +10,10 @@ const COOKIE_OPTIONS = {
 
 exports.login = async (req, res, next) => {
   try {
-    const { accessToken, refreshToken, staff } = await authService.login(
-      req.body,
-    );
+    const { accessToken, refreshToken, role, staff, reader } =
+      await authService.login(req.body);
     res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
-    res.json({ success: true, accessToken, staff });
+    res.json({ success: true, accessToken, role, staff, reader });
   } catch (err) {
     next(err);
   }

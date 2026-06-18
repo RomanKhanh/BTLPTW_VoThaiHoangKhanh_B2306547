@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const ReaderSchema = new mongoose.Schema(
   {
@@ -37,11 +38,26 @@ const ReaderSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    Password: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
     collection: "Reader",
   },
 );
+
+ReaderSchema.pre("save", async function () {
+  if (!this.isModified("Password")) return;
+
+  const salt = await bcrypt.genSalt(10);
+  this.Password = await bcrypt.hash(this.Password, salt);
+});
+
+ReaderSchema.methods.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.Password);
+};
 
 module.exports = mongoose.model("Reader", ReaderSchema);

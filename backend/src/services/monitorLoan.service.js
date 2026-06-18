@@ -27,10 +27,44 @@ exports.createMonitorLoan = async (data) => {
   data = { NgayMuon: new Date(), NgayTra: null, ...data };
   const loan = await MonitorLoan.create(data);
 
-  await Book.findOneAndUpdate(
-    { MaSach: data.MaSach },
-    { $inc: { SoLuong: -1 } },
-  );
+  await Book.findOneAndUpdate({ _id: data.MaSach }, { $inc: { SoQuyen: -1 } });
 
   return loan;
+};
+
+exports.getMonitorLoanByFilter = async (filter = {}) => {
+  return await MonitorLoan.find(filter)
+    .populate("MaDocGia", "MaDocGia HoLot Ten")
+    .populate("MaSach", "MaSach TenSach");
+};
+
+exports.getMonitorLoanByIdDocGia = async (idDG) => {
+  return await this.getMonitorLoanByFilter({ MaDocGia: idDG });
+};
+
+exports.updateNgayTra = async (id) => {
+  let loanRecord = await MonitorLoan.findById(id);
+
+  if (!loanRecord) {
+    throw {
+      status: 400,
+      message: "Mã id của phiếu không tồn tại",
+    };
+  }
+  if (loanRecord.NgayTra) {
+    throw {
+      status: 400,
+      message: "Sách đã được trả",
+    };
+  }
+
+  await Book.findOneAndUpdate(
+    { _id: loanRecord.MaSach },
+    { $inc: { SoQuyen: 1 } },
+  );
+
+  loanRecord.NgayTra = new Date();
+  await loanRecord.save();
+
+  return loanRecord;
 };

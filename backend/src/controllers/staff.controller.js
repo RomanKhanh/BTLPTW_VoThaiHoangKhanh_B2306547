@@ -47,3 +47,18 @@ exports.updateStaff = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { MSNV } = req.params;
+    const { oldPassword, newPassword } = req.body;
+    const result = await staffService.changePassword(
+      MSNV,
+      oldPassword,
+      newPassword,
+    );
+    res.status(201).json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+};

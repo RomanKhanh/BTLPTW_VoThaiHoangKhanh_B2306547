@@ -1,5 +1,13 @@
 const { Reader, MonitorLoan, Counter } = require("../models/");
 
+function toPublicReader(reader) {
+  if (!reader) return reader;
+
+  const plainReader = reader.toObject ? reader.toObject() : { ...reader };
+  delete plainReader.Password;
+  return plainReader;
+}
+
 async function getNextReaderCode() {
   const counter = await Counter.findByIdAndUpdate(
     "reader",
@@ -16,15 +24,15 @@ async function getNextReaderCode() {
 exports.createReader = async (data) => {
   data.MaDocGia = await getNextReaderCode();
   const newReader = await Reader.create(data);
-  return newReader;
+  return toPublicReader(newReader);
 };
 
 exports.getReadersByfilter = async (filter = {}) => {
-  return await Reader.find(filter);
+  return await Reader.find(filter).select("-Password");
 };
 
 exports.getReaderByMaDocGia = async (MaDocGia) => {
-  const reader = await Reader.findOne({ MaDocGia });
+  const reader = await Reader.findOne({ MaDocGia }).select("-Password");
   if (!reader) {
     throw {
       status: 404,
@@ -36,17 +44,45 @@ exports.getReaderByMaDocGia = async (MaDocGia) => {
 
 exports.updateReader = async (MaDocGia, data) => {
   delete data.MaDocGia;
-  const reader = await Reader.findOneAndUpdate({ MaDocGia }, data, {
-    new: true,
-    runValidators: true,
-  });
+  delete data.Password;
+
+  const reader = await Reader.findOne({ MaDocGia });
   if (!reader) {
     throw {
       status: 404,
       message: `Không tìm thấy độc giả với mã ${MaDocGia}`,
     };
   }
-  return reader;
+
+  Object.assign(reader, data);
+  await reader.save();
+
+  return toPublicReader(reader);
+};
+
+exports.changePassword = async (MaDocGia, oldPassword, newPassword) => {
+  const reader = await Reader.findOne({ MaDocGia });
+  if (!reader) {
+    throw {
+      status: 404,
+      message: `Không tìm thấy độc giả với mã ${MaDocGia}`,
+    };
+  }
+
+  const isMatch = await reader.comparePassword(oldPassword);
+  if (!isMatch) {
+    throw {
+      status: 400,
+      message: "Mật khẩu hiện tại không đúng",
+    };
+  }
+
+  reader.Password = newPassword;
+  await reader.save();
+
+  return {
+    message: "Đổi mật khẩu độc giả thành công",
+  };
 };
 
 exports.deleteReader = async (MaDocGia) => {

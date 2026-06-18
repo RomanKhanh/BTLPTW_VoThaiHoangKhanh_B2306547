@@ -1,4 +1,5 @@
 const { Staff, Counter } = require("../models/");
+const bcrypt = require("bcrypt");
 
 async function getNextStaffCode() {
   const counter = await Counter.findByIdAndUpdate(
@@ -54,6 +55,7 @@ exports.getStaffByMSNV = async (MSNV) => {
 
 exports.updateStaff = async (MSNV, data) => {
   delete data.MSNV;
+  delete data.Password;
 
   const staff = await Staff.findOneAndUpdate({ MSNV }, data, {
     new: true,
@@ -73,5 +75,28 @@ exports.updateStaff = async (MSNV, data) => {
     ChucVu: staff.ChucVu,
     DiaChi: staff.DiaChi,
     SoDienThoai: staff.SoDienThoai,
+  };
+};
+
+exports.changePassword = async (MSNV, oldPassword, newPassword) => {
+  const staff = await Staff.findOne({ MSNV });
+  if (!staff) {
+    throw {
+      status: 400,
+      message: "Nhân viên không tồn tại",
+    };
+  }
+  const isMatch = await bcrypt.compare(oldPassword, staff.Password);
+
+  if (!isMatch) {
+    throw {
+      status: 400,
+      message: "Mật khẩu hiện tại không đúng",
+    };
+  }
+  staff.Password = newPassword;
+  await staff.save();
+  return {
+    message: "Đổi mật khẩu thành công",
   };
 };
