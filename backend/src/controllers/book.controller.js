@@ -2,11 +2,7 @@ const bookService = require("../services/book.service");
 
 exports.getBooks = async (req, res, next) => {
   try {
-<<<<<<< HEAD
     const { TenSach, NamXuatBan, publisherId, page, limit } = req.query;
-=======
-    const { TenSach, NamXuatBan, publisherId } = req.query;
->>>>>>> 128f6133a0c05ad620a1b07ee3edc6c841ff138b
 
     const filter = {};
 
@@ -25,7 +21,6 @@ exports.getBooks = async (req, res, next) => {
       filter.MaNXB = publisherId;
     }
 
-<<<<<<< HEAD
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 10;
 
@@ -35,10 +30,6 @@ exports.getBooks = async (req, res, next) => {
       limitNum,
     );
     res.status(200).json({ success: true, ...result });
-=======
-    const books = await bookService.getBooksByCondition(filter);
-    res.status(201).json({ success: true, data: books });
->>>>>>> 128f6133a0c05ad620a1b07ee3edc6c841ff138b
   } catch (err) {
     next(err);
   }

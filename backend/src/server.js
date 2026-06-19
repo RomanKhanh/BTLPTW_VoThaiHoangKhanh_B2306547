@@ -8,7 +8,6 @@ const app = express();
 const port = process.env.PORT || 8888;
 
 // config cors
-<<<<<<< HEAD
 const allowedOrigins = (
   process.env.CORS_ORIGIN || "http://localhost:5173"
 ).split(",");
@@ -18,9 +17,6 @@ app.use(
     credentials: true,
   }),
 );
-=======
-app.use(cors());
->>>>>>> 128f6133a0c05ad620a1b07ee3edc6c841ff138b
 
 // config req.body
 app.use(express.json());
