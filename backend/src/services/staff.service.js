@@ -7,6 +7,7 @@ async function getNextStaffCode() {
     { $inc: { seq: 1 } },
     {
       new: true,
+      returnDocument: "after",
       upsert: true,
     },
   );
@@ -59,6 +60,7 @@ exports.updateStaff = async (MSNV, data) => {
 
   const staff = await Staff.findOneAndUpdate({ MSNV }, data, {
     new: true,
+    returnDocument: "after",
     runValidators: true,
   }).select("-Password");
 

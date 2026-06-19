@@ -6,6 +6,7 @@ async function getNextBookCode() {
     { $inc: { seq: 1 } },
     {
       new: true,
+      returnDocument: "after",
       upsert: true,
     },
   );
@@ -55,6 +56,7 @@ exports.createBook = async (bookData) => {
 exports.updateBook = async (MaSach, updateData) => {
   const updatedBook = await Book.findOneAndUpdate({ MaSach }, updateData, {
     new: true,
+    returnDocument: "after",
     runValidators: true,
   });
   if (!updatedBook) {

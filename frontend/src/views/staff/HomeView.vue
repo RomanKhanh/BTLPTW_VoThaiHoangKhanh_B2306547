@@ -86,10 +86,10 @@ const cardTone = {
         <div class="flex items-center justify-between px-5 py-4 border-b border-ink-100">
           <h2 class="text-sm font-semibold text-ink-700">Phiếu mượn quá hạn gần đây</h2>
           <button
-            class="text-sm text-brand-600 hover:underline font-medium"
+            class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200/50 hover:border-brand-200 shadow-2xs transition-all duration-200 cursor-pointer"
             @click="router.push({ name: 'staff-loans', query: { tab: 'quaHan' } })"
           >
-            Xem tất cả →
+            Xem tất cả
           </button>
         </div>
 

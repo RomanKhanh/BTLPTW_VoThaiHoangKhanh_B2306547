@@ -148,15 +148,19 @@ async function submitChangePwd() {
               <td class="px-5 py-3 text-ink-700">{{ s.HoTenNV }}</td>
               <td class="px-5 py-3 text-ink-500">{{ s.ChucVu || "—" }}</td>
               <td class="px-5 py-3 text-ink-500">{{ s.SoDienThoai || "—" }}</td>
-              <td class="px-5 py-3 text-right space-x-3">
+              <td class="px-5 py-3 text-right space-x-2">
                 <button
-                  class="text-brand-600 hover:text-brand-700 font-medium"
+                  class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200/50 hover:border-brand-200 shadow-2xs transition-all duration-200 cursor-pointer"
                   @click="openEdit(s)"
-                >Sửa</button>
+                >
+                  Sửa
+                </button>
                 <button
-                  class="text-ink-400 hover:text-ink-700 font-medium"
+                  class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-ink-100 hover:bg-ink-200 text-ink-700 border border-ink-200/50 hover:border-ink-200 shadow-2xs transition-all duration-200 cursor-pointer"
                   @click="openChangePwd(s)"
-                >Đổi mật khẩu</button>
+                >
+                  Đổi mật khẩu
+                </button>
               </td>
             </tr>
           </tbody>

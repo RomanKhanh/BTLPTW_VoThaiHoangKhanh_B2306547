@@ -1,7 +1,12 @@
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { useToastStore, extractErrorMessage } from "../../stores/toast";
-import { getPublishers, createPublisher, updatePublisher, deletePublisher } from "../../api/publisher.api";
+import {
+  getPublishers,
+  createPublisher,
+  updatePublisher,
+  deletePublisher,
+} from "../../api/publisher.api";
 import Spinner from "../../components/ui/Spinner.vue";
 import EmptyState from "../../components/ui/EmptyState.vue";
 import AppModal from "../../components/ui/AppModal.vue";
@@ -9,6 +14,7 @@ import ConfirmDialog from "../../components/ui/ConfirmDialog.vue";
 import Pagination from "../../components/ui/Pagination.vue";
 
 const toast = useToastStore();
+const MAX_ADDRESS_LENGTH = 70;
 const loading = ref(true);
 const publishers = ref([]);
 const page = ref(1);
@@ -52,6 +58,11 @@ function openEdit(p) {
 }
 
 async function submitForm() {
+  if ((form.DiaChi || "").length > MAX_ADDRESS_LENGTH) {
+    toast.error(`Địa chỉ chỉ được tối đa ${MAX_ADDRESS_LENGTH} kí tự`);
+    return;
+  }
+
   saving.value = true;
   try {
     if (editingPublisher.value) {
@@ -100,9 +111,14 @@ async function confirmDelete() {
     <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
       <div>
         <h1 class="text-xl font-semibold text-ink-800">Nhà xuất bản</h1>
-        <p class="text-sm text-ink-400 mt-0.5">Quản lý danh sách nhà xuất bản</p>
+        <p class="text-sm text-ink-400 mt-0.5">
+          Quản lý danh sách nhà xuất bản
+        </p>
       </div>
-      <button class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium" @click="openCreate">
+      <button
+        class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium"
+        @click="openCreate"
+      >
         + Thêm NXB
       </button>
     </div>
@@ -112,7 +128,10 @@ async function confirmDelete() {
         <Spinner />
       </div>
 
-      <EmptyState v-else-if="!publishers.length" title="Chưa có nhà xuất bản nào" />
+      <EmptyState
+        v-else-if="!publishers.length"
+        title="Chưa có nhà xuất bản nào"
+      />
 
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -125,37 +144,64 @@ async function confirmDelete() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="p in publishers" :key="p._id" class="border-b border-ink-50 hover:bg-ink-50/60">
+            <tr
+              v-for="p in publishers"
+              :key="p._id"
+              class="border-b border-ink-50 hover:bg-ink-50/60"
+            >
               <td class="px-5 py-3 font-medium text-ink-700">{{ p.MaNXB }}</td>
               <td class="px-5 py-3 text-ink-700">{{ p.TenNXB }}</td>
               <td class="px-5 py-3 text-ink-500">{{ p.DiaChi || "—" }}</td>
-              <td class="px-5 py-3 text-right space-x-3">
-                <button class="text-brand-600 hover:text-brand-700 font-medium" @click="openEdit(p)">Sửa</button>
-                <button class="text-rose-600 hover:text-rose-700 font-medium" @click="askDelete(p)">Xoá</button>
+              <td class="px-5 py-3 text-right space-x-2">
+                <button
+                  class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200/50 hover:border-brand-200 shadow-2xs transition-all duration-200 cursor-pointer"
+                  @click="openEdit(p)"
+                >
+                  Sửa
+                </button>
+                <button
+                  class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/50 hover:border-rose-200 shadow-2xs transition-all duration-200 cursor-pointer"
+                  @click="askDelete(p)"
+                >
+                  Xoá
+                </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="p-4 border-t border-ink-100" v-if="!loading && publishers.length">
+      <div
+        class="p-4 border-t border-ink-100"
+        v-if="!loading && publishers.length"
+      >
         <Pagination v-model:page="page" :total-pages="totalPages" />
       </div>
     </div>
 
-    <AppModal v-model="showForm" :title="editingPublisher ? 'Sửa nhà xuất bản' : 'Thêm nhà xuất bản'">
+    <AppModal
+      v-model="showForm"
+      :title="editingPublisher ? 'Sửa nhà xuất bản' : 'Thêm nhà xuất bản'"
+    >
       <form class="space-y-4" @submit.prevent="submitForm">
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Tên NXB *</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Tên NXB *</label
+          >
           <input v-model="form.TenNXB" required type="text" class="input" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Địa chỉ</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Địa chỉ (Tối đa {{ MAX_ADDRESS_LENGTH }} kí tự)</label
+          >
           <input v-model="form.DiaChi" type="text" class="input" />
         </div>
       </form>
       <template #footer>
-        <button class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100" @click="showForm = false">
+        <button
+          class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100"
+          @click="showForm = false"
+        >
           Hủy
         </button>
         <button

@@ -14,6 +14,7 @@ async function getNextReaderCode() {
     { $inc: { seq: 1 } },
     {
       new: true,
+      returnDocument: "after",
       upsert: true,
     },
   );

@@ -181,7 +181,7 @@ async function confirmReturn() {
               <td class="px-5 py-3 text-right">
                 <button
                   v-if="!loan.NgayTra"
-                  class="text-brand-600 hover:text-brand-700 font-medium"
+                  class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200/50 hover:border-brand-200 shadow-2xs transition-all duration-200 cursor-pointer"
                   @click="askReturn(loan)"
                 >
                   Xác nhận trả

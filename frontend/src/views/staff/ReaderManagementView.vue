@@ -171,9 +171,19 @@ async function confirmDelete() {
               <td class="px-5 py-3 text-ink-700">{{ r.HoLot }} {{ r.Ten }}</td>
               <td class="px-5 py-3 text-ink-500">{{ formatDate(r.NgaySinh) }}</td>
               <td class="px-5 py-3 text-ink-500">{{ r.DienThoai || "—" }}</td>
-              <td class="px-5 py-3 text-right space-x-3">
-                <button class="text-brand-600 hover:text-brand-700 font-medium" @click="openEdit(r)">Sửa</button>
-                <button class="text-rose-600 hover:text-rose-700 font-medium" @click="askDelete(r)">Xoá</button>
+              <td class="px-5 py-3 text-right space-x-2">
+                <button
+                  class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200/50 hover:border-brand-200 shadow-2xs transition-all duration-200 cursor-pointer"
+                  @click="openEdit(r)"
+                >
+                  Sửa
+                </button>
+                <button
+                  class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/50 hover:border-rose-200 shadow-2xs transition-all duration-200 cursor-pointer"
+                  @click="askDelete(r)"
+                >
+                  Xoá
+                </button>
               </td>
             </tr>
           </tbody>

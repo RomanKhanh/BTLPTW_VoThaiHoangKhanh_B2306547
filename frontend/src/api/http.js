@@ -37,8 +37,7 @@ http.interceptors.response.use(
   async (error) => {
     const { config, response } = error;
 
-    const isAuthError =
-      response?.status === 401 || response?.status === 403;
+    const isAuthError = response?.status === 401 || response?.status === 403;
     const isRefreshCall = config?.url?.includes("/auth/refresh");
 
     if (isAuthError && !config._retry && !isRefreshCall) {

@@ -6,6 +6,7 @@ async function getNextPublisherCode() {
     { $inc: { seq: 1 } },
     {
       new: true,
+      returnDocument: "after",
       upsert: true,
     },
   );
@@ -62,6 +63,7 @@ exports.updatePublisher = async (MaNXB, data) => {
   delete data.MaNXB;
   const publisher = await Publisher.findOneAndUpdate({ MaNXB }, data, {
     new: true,
+    returnDocument: "after",
     runValidators: true,
   });
   if (!publisher) {
