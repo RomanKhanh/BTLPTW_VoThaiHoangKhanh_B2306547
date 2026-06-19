@@ -11,6 +11,11 @@ export const useAuthStore = defineStore("auth", {
     isAuthenticated: (state) => !!state.accessToken && !!state.role,
     isStaff: (state) => state.role === "staff",
     isReader: (state) => state.role === "reader",
+    // Quyền quản lý nhân viên dựa trên Chức vụ = "Quản lý" (không phân biệt hoa/thường, khoảng trắng thừa)
+    isManager: (state) =>
+      state.role === "staff" &&
+      typeof state.user?.ChucVu === "string" &&
+      state.user.ChucVu.trim().toLowerCase() === "quản lý",
     // Mã định danh: MSNV cho staff, MaDocGia cho reader
     code: (state) => state.user?.MSNV || state.user?.MaDocGia || null,
     displayName: (state) => {

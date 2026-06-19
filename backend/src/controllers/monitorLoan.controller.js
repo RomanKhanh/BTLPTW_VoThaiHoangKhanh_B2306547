@@ -1,4 +1,5 @@
 const monitorLoanService = require("../services/monitorLoan.service");
+const readerService = require("../services/reader.service");
 
 exports.createMonitorLoan = async (req, res, next) => {
   try {
@@ -36,7 +37,8 @@ exports.getMonitorLoan = async (req, res, next) => {
     const filter = {};
 
     if (MaDocGia) {
-      filter.MaDocGia = MaDocGia;
+      const idDG = await readerService.getReaderByMaDocGia(MaDocGia);
+      filter.MaDocGia = idDG;
     }
     if (MaSach) {
       filter.MaSach = MaSach;

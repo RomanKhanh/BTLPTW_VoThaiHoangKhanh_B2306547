@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { useToastStore } from "../stores/toast";
@@ -10,14 +10,18 @@ const auth = useAuthStore();
 const toast = useToastStore();
 const loggingOut = ref(false);
 
-const navItems = [
+const allNavItems = [
   { to: "/staff/home", label: "Trang chủ", icon: "🏠" },
   { to: "/staff/books", label: "Danh sách sách", icon: "📚" },
   { to: "/staff/loans", label: "Quản lý mượn sách", icon: "🧾" },
   { to: "/staff/readers", label: "Độc giả", icon: "🧑‍🤝‍🧑" },
   { to: "/staff/publishers", label: "Nhà xuất bản", icon: "🏢" },
-  { to: "/staff/staffs", label: "Nhân viên", icon: "🪪" },
+  { to: "/staff/staffs", label: "Nhân viên", icon: "🪪", adminOnly: true },
 ];
+
+const navItems = computed(() =>
+  allNavItems.filter((item) => !item.adminOnly || auth.isManager),
+);
 
 async function handleLogout() {
   loggingOut.value = true;
@@ -39,7 +43,9 @@ async function handleLogout() {
     <!-- Sidebar -->
     <aside class="w-64 shrink-0 bg-ink-900 text-ink-100 flex flex-col">
       <div class="px-5 py-5 flex items-center gap-2 border-b border-white/10">
-        <div class="h-9 w-9 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-white">
+        <div
+          class="h-9 w-9 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-white"
+        >
           QL
         </div>
         <div class="leading-tight">
@@ -66,12 +72,18 @@ async function handleLogout() {
           to="/staff/profile"
           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 mb-1"
         >
-          <div class="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center text-sm font-semibold text-white">
+          <div
+            class="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center text-sm font-semibold text-white"
+          >
             {{ (auth.displayName || "NV").charAt(0).toUpperCase() }}
           </div>
           <div class="leading-tight overflow-hidden">
-            <p class="text-sm font-medium text-white truncate">{{ auth.displayName }}</p>
-            <p class="text-xs text-ink-400">{{ auth.user?.ChucVu || "Nhân viên" }}</p>
+            <p class="text-sm font-medium text-white truncate">
+              {{ auth.displayName }}
+            </p>
+            <p class="text-xs text-ink-400">
+              {{ auth.user?.ChucVu || "Nhân viên" }}
+            </p>
           </div>
         </router-link>
         <button

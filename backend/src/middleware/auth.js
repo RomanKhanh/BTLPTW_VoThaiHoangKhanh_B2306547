@@ -75,7 +75,47 @@ const requireSelfOrStaff =
       .json({ success: false, message: "Không có quyền truy cập" });
   };
 
+// So sánh chức vụ không phân biệt hoa thường / khoảng trắng thừa
+const isManager = (chucVu) =>
+  typeof chucVu === "string" && chucVu.trim().toLowerCase() === "quản lý";
+
+// Chỉ cho phép nhân viên có ChucVu = "Quản lý"
+const requireManager = (req, res, next) => {
+  if (!req.userRole) {
+    return res.status(401).json({ success: false, message: "Chưa đăng nhập" });
+  }
+  if (req.userRole !== "staff" || !isManager(req.user?.ChucVu)) {
+    return res
+      .status(403)
+      .json({ success: false, message: "Chỉ Quản lý mới có quyền truy cập" });
+  }
+  next();
+};
+
+// Quản lý được truy cập mọi nhân viên, nhân viên thường chỉ được truy cập chính mình
+const requireSelfOrManager =
+  (paramName, tokenField = "MSNV") =>
+  (req, res, next) => {
+    if (!req.userRole) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Chưa đăng nhập" });
+    }
+    if (req.userRole !== "staff") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Không có quyền truy cập" });
+    }
+    if (isManager(req.user?.ChucVu)) return next();
+    if (req.user?.[tokenField] === req.params[paramName]) return next();
+    return res
+      .status(403)
+      .json({ success: false, message: "Không có quyền truy cập" });
+  };
+
 module.exports = Object.assign(authenticate, {
   requireRoles,
   requireSelfOrStaff,
+  requireManager,
+  requireSelfOrManager,
 });

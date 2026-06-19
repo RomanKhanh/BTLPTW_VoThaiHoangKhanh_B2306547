@@ -33,15 +33,18 @@ exports.getStaffByMSNV = async (req, res, next) => {
   }
 };
 
+const { isManager } = require("../middleware/auth");
+
 exports.updateStaff = async (req, res, next) => {
   if (!Object.keys(req.body).length) {
-    return next({
-      status: 400,
-      message: "Không có dữ liệu cập nhật",
-    });
+    return next({ status: 400, message: "Không có dữ liệu cập nhật" });
   }
   try {
-    const result = await staffService.updateStaff(req.params.MSNV, req.body);
+    const payload = { ...req.body };
+    if (!isManager(req.user?.ChucVu)) {
+      delete payload.ChucVu; // chỉ Quản lý mới đổi được Chức vụ
+    }
+    const result = await staffService.updateStaff(req.params.MSNV, payload);
     res.status(200).json({ success: true, data: result });
   } catch (err) {
     next(err);
