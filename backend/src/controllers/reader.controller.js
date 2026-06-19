@@ -125,6 +125,7 @@ exports.changePassword = async (req, res, next) => {
   }
 };
 
+<<<<<<< HEAD
 exports.resetPassword = async (req, res, next) => {
   try {
     const { MaDocGia } = req.params;
@@ -142,6 +143,8 @@ exports.resetPassword = async (req, res, next) => {
   }
 };
 
+=======
+>>>>>>> 128f6133a0c05ad620a1b07ee3edc6c841ff138b
 exports.deleteReader = async (req, res, next) => {
   try {
     const { MaDocGia } = req.params;
