@@ -34,12 +34,18 @@ async function handleLogout() {
 <template>
   <div class="min-h-full flex flex-col bg-ink-50">
     <header class="bg-white border-b border-ink-100 sticky top-0 z-30">
-      <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div
+        class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between"
+      >
         <div class="flex items-center gap-2">
-          <div class="h-9 w-9 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-white">
+          <div
+            class="h-9 w-9 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-white"
+          >
             QL
           </div>
-          <span class="font-semibold text-ink-800 hidden sm:inline">QuanLyMuonSach</span>
+          <span class="font-semibold text-ink-800 hidden sm:inline"
+            >QuanLyMuonSach</span
+          >
         </div>
 
         <nav class="hidden md:flex items-center gap-1">
@@ -59,10 +65,14 @@ async function handleLogout() {
             class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-ink-100"
             @click="menuOpen = !menuOpen"
           >
-            <div class="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center text-sm font-semibold text-white">
+            <div
+              class="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center text-sm font-semibold text-white"
+            >
               {{ (auth.displayName || "DG").charAt(0).toUpperCase() }}
             </div>
-            <span class="text-sm font-medium text-ink-700 hidden sm:inline">{{ auth.displayName }}</span>
+            <span class="text-sm font-medium text-ink-700 hidden sm:inline">{{
+              auth.displayName
+            }}</span>
           </button>
           <div
             v-if="menuOpen"

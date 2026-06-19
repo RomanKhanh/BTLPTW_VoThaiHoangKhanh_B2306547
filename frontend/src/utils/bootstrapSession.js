@@ -6,6 +6,12 @@ import { decodeJwtPayload } from "./jwt";
 
 export async function bootstrapSession() {
   const auth = useAuthStore();
+  const cachedSession = {
+    accessToken: auth.accessToken,
+    role: auth.role,
+    user: auth.user,
+  };
+
   try {
     const accessToken = await apiRefresh();
     auth.setAccessToken(accessToken);
@@ -23,7 +29,11 @@ export async function bootstrapSession() {
       auth.clearSession();
     }
   } catch {
-    auth.clearSession();
+    if (cachedSession.accessToken && cachedSession.role && cachedSession.user) {
+      auth.setSession(cachedSession);
+    } else {
+      auth.clearSession();
+    }
   } finally {
     auth.bootLoading = false;
   }
