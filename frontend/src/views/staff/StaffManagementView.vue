@@ -6,6 +6,7 @@ import {
   createStaff,
   updateStaff,
   changeStaffPassword,
+  resetStaffPassword,
 } from "../../api/staff.api";
 import Spinner from "../../components/ui/Spinner.vue";
 import EmptyState from "../../components/ui/EmptyState.vue";
@@ -117,7 +118,6 @@ const pwdForm = reactive({ oldPassword: "", newPassword: "", confirmNew: "" });
 
 function openChangePwd(s) {
   pwdTarget.value = s;
-  pwdForm.oldPassword = "";
   pwdForm.newPassword = "";
   pwdForm.confirmNew = "";
   showChangePwd.value = true;
@@ -130,8 +130,7 @@ async function submitChangePwd() {
   }
   changingPwd.value = true;
   try {
-    await changeStaffPassword(pwdTarget.value.MSNV, {
-      oldPassword: pwdForm.oldPassword,
+    await resetStaffPassword(pwdTarget.value.MSNV, {
       newPassword: pwdForm.newPassword,
     });
     toast.success("Đổi mật khẩu thành công");
@@ -295,18 +294,6 @@ async function submitChangePwd() {
         >
       </p>
       <form class="space-y-4" @submit.prevent="submitChangePwd">
-        <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5"
-            >Mật khẩu hiện tại</label
-          >
-          <input
-            v-model="pwdForm.oldPassword"
-            required
-            type="password"
-            class="input"
-            placeholder="••••••••"
-          />
-        </div>
         <div>
           <label class="block text-sm font-medium text-ink-600 mb-1.5"
             >Mật khẩu mới</label

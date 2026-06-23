@@ -27,4 +27,10 @@ router.patch(
   staffController.changePassword,
 );
 
+router.patch(
+  "/:MSNV/reset-password",
+  requireManager,
+  staffController.resetPassword,
+);
+
 module.exports = router;

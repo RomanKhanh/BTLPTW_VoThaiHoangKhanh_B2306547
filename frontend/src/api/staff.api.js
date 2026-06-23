@@ -21,3 +21,9 @@ export function changeStaffPassword(MSNV, payload) {
     .patch(`/staff/${MSNV}/change-password`, payload)
     .then((r) => r.data);
 }
+
+export function resetStaffPassword(MSNV, payload) {
+  return http
+    .patch(`/staff/${MSNV}/reset-password`, payload)
+    .then((r) => r.data);
+}

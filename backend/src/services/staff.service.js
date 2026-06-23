@@ -115,3 +115,18 @@ exports.changePassword = async (MSNV, oldPassword, newPassword) => {
     message: "Đổi mật khẩu thành công",
   };
 };
+
+exports.resetPasswordByAdmin = async (MSNV, newPassword) => {
+  const staff = await Staff.findOne({ MSNV });
+  if (!staff) {
+    throw {
+      status: 404,
+      message: `Không tìm thấy nhân viên với mã ${MaDocGia}`,
+    };
+  }
+  staff.Password = newPassword;
+  await staff.save();
+  return {
+    message: "Đặt lại mật khẩu staff thành công",
+  };
+};

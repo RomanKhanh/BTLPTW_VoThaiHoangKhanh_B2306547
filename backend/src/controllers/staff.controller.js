@@ -81,3 +81,17 @@ exports.changePassword = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { MSNV } = req.params;
+    const { newPassword } = req.body;
+    if (!newPassword) {
+      return next({ status: 400, message: "Thiếu newPassword" });
+    }
+    const result = await staffService.resetPasswordByAdmin(MSNV, newPassword);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
