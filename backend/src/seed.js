@@ -1,3 +1,5 @@
+//File tao Loan qua han
+
 require("dotenv").config();
 const connection = require("./config/database");
 const mongoose = require("mongoose");
@@ -20,11 +22,11 @@ const { MonitorLoan } = require("./models");
       NgayTra,
       NgayHenTra,
     });
-    console.log("Tạo tài khoản staff đầu tiên thành công:");
+    console.log("Tạo Loan qua han thành công:");
     console.log({ ...monitorLoan });
     process.exit(0);
   } catch (err) {
-    console.error("Lỗi khi tạo staff đầu tiên:", err);
+    console.error("Lỗi khi Lao qua han: ", err);
     process.exit(1);
   }
 })();

@@ -40,7 +40,6 @@ exports.getMonitorLoan = async (req, res, next) => {
       NgayMuon,
       returned,
       quaHan,
-      search,
       page,
       limit,
     } = req.query;
