@@ -3,6 +3,7 @@ import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { registerReader } from "../../api/auth.api";
 import { useToastStore, extractErrorMessage } from "../../stores/toast";
+import { toApiDate } from "../../utils/date";
 import Spinner from "../../components/ui/Spinner.vue";
 import AppModal from "../../components/ui/AppModal.vue";
 
@@ -30,6 +31,7 @@ async function handleSubmit() {
   loading.value = true;
   try {
     const payload = { ...form };
+    payload.NgaySinh = toApiDate(payload.NgaySinh);
     if (!payload.NgaySinh) delete payload.NgaySinh;
     if (!payload.Phai) delete payload.Phai;
 
@@ -112,7 +114,13 @@ function goToLogin() {
               class="block text-xs font-semibold text-ink-600 uppercase tracking-wider"
               >Ngày sinh</label
             >
-            <input v-model="form.NgaySinh" type="date" class="input" />
+            <input
+              v-model="form.NgaySinh"
+              type="text"
+              inputmode="numeric"
+              placeholder="dd/mm/yyyy"
+              class="input"
+            />
           </div>
           <div class="space-y-1">
             <label

@@ -6,7 +6,13 @@ import { useToastStore, extractErrorMessage } from "../../stores/toast";
 import { getBookByMaSach, updateBook, deleteBook } from "../../api/book.api";
 import { getPublishers } from "../../api/publisher.api";
 import { createLoan } from "../../api/monitorLoan.api";
-import { toInputDate, addDays, MAX_LOAN_DAYS, DEFAULT_LOAN_DAYS } from "../../utils/date";
+import {
+  toDisplayDate,
+  toApiDate,
+  addDays,
+  MAX_LOAN_DAYS,
+  DEFAULT_LOAN_DAYS,
+} from "../../utils/date";
 import Spinner from "../../components/ui/Spinner.vue";
 import AppModal from "../../components/ui/AppModal.vue";
 import ConfirmDialog from "../../components/ui/ConfirmDialog.vue";
@@ -17,7 +23,9 @@ const auth = useAuthStore();
 const toast = useToastStore();
 
 const isStaffArea = computed(() => route.path.startsWith("/staff"));
-const listRouteName = computed(() => (isStaffArea.value ? "staff-books" : "reader-borrow"));
+const listRouteName = computed(() =>
+  isStaffArea.value ? "staff-books" : "reader-borrow",
+);
 
 const book = ref(null);
 const loading = ref(true);
@@ -39,15 +47,15 @@ const showBorrow = ref(false);
 const borrowing = ref(false);
 const borrowForm = reactive({
   MaDocGia: "",
-  NgayHenTra: toInputDate(addDays(new Date(), DEFAULT_LOAN_DAYS)),
+  NgayHenTra: toDisplayDate(addDays(new Date(), DEFAULT_LOAN_DAYS)),
   PhuongThucNhan: "NhanTrucTiep",
 });
-const maxDueDate = toInputDate(addDays(new Date(), MAX_LOAN_DAYS));
-const minDueDate = toInputDate(addDays(new Date(), 1));
+const maxDueDate = toApiDate(addDays(new Date(), MAX_LOAN_DAYS));
+const minDueDate = toApiDate(addDays(new Date(), 1));
 
 function openBorrow() {
   borrowForm.MaDocGia = auth.isReader ? auth.user?.MaDocGia : "";
-  borrowForm.NgayHenTra = toInputDate(
+  borrowForm.NgayHenTra = toDisplayDate(
     addDays(new Date(), auth.isReader ? MAX_LOAN_DAYS : DEFAULT_LOAN_DAYS),
   );
   borrowForm.PhuongThucNhan = "NhanTrucTiep";
@@ -57,10 +65,22 @@ function openBorrow() {
 async function submitBorrow() {
   borrowing.value = true;
   try {
+    const dueDate = toApiDate(borrowForm.NgayHenTra);
+    if (!dueDate) {
+      toast.error("Ngày hẹn trả không hợp lệ");
+      return;
+    }
+    if (dueDate < minDueDate || dueDate > maxDueDate) {
+      toast.error(
+        `Ngày hẹn trả phải nằm trong khoảng từ ${toDisplayDate(minDueDate)} đến ${toDisplayDate(maxDueDate)}`,
+      );
+      return;
+    }
+
     await createLoan({
       MaDocGia: borrowForm.MaDocGia,
       MaSach: book.value.MaSach,
-      NgayHenTra: borrowForm.NgayHenTra,
+      NgayHenTra: dueDate,
       PhuongThucNhan: borrowForm.PhuongThucNhan,
     });
     toast.success("Mượn sách thành công!");
@@ -150,7 +170,10 @@ async function submitDelete() {
       <Spinner />
     </div>
 
-    <div v-else-if="book" class="bg-white rounded-2xl border border-ink-100 shadow-sm p-6">
+    <div
+      v-else-if="book"
+      class="bg-white rounded-2xl border border-ink-100 shadow-sm p-6"
+    >
       <div class="flex flex-col sm:flex-row gap-6">
         <div
           class="w-full sm:w-44 h-60 shrink-0 rounded-xl bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-5xl text-white shadow-inner"
@@ -159,25 +182,37 @@ async function submitDelete() {
         </div>
 
         <div class="flex-1">
-          <h1 class="text-2xl font-semibold text-ink-800">{{ book.TenSach }}</h1>
-          <p class="text-ink-500 mt-1">{{ book.NguonGocTacGia || "Chưa rõ tác giả" }}</p>
+          <h1 class="text-2xl font-semibold text-ink-800">
+            {{ book.TenSach }}
+          </h1>
+          <p class="text-ink-500 mt-1">
+            {{ book.NguonGocTacGia || "Chưa rõ tác giả" }}
+          </p>
 
           <dl class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-5">
             <div>
               <dt class="text-xs text-ink-400">Mã sách</dt>
-              <dd class="text-sm font-medium text-ink-700 mt-0.5">{{ book.MaSach }}</dd>
+              <dd class="text-sm font-medium text-ink-700 mt-0.5">
+                {{ book.MaSach }}
+              </dd>
             </div>
             <div>
               <dt class="text-xs text-ink-400">Năm xuất bản</dt>
-              <dd class="text-sm font-medium text-ink-700 mt-0.5">{{ book.NamXuatBan || "—" }}</dd>
+              <dd class="text-sm font-medium text-ink-700 mt-0.5">
+                {{ book.NamXuatBan || "—" }}
+              </dd>
             </div>
             <div>
               <dt class="text-xs text-ink-400">Nhà xuất bản</dt>
-              <dd class="text-sm font-medium text-ink-700 mt-0.5">{{ book.MaNXB?.TenNXB || "—" }}</dd>
+              <dd class="text-sm font-medium text-ink-700 mt-0.5">
+                {{ book.MaNXB?.TenNXB || "—" }}
+              </dd>
             </div>
             <div>
               <dt class="text-xs text-ink-400">Đơn giá</dt>
-              <dd class="text-sm font-medium text-ink-700 mt-0.5">{{ book.DonGia?.toLocaleString("vi-VN") }} đ</dd>
+              <dd class="text-sm font-medium text-ink-700 mt-0.5">
+                {{ book.DonGia?.toLocaleString("vi-VN") }} đ
+              </dd>
             </div>
             <div>
               <dt class="text-xs text-ink-400">Số lượng còn lại</dt>
@@ -222,7 +257,9 @@ async function submitDelete() {
     <AppModal v-model="showBorrow" title="Mượn sách">
       <form class="space-y-4" @submit.prevent="submitBorrow">
         <div v-if="auth.isStaff">
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Mã độc giả *</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Mã độc giả *</label
+          >
           <input
             v-model="borrowForm.MaDocGia"
             type="text"
@@ -235,44 +272,69 @@ async function submitDelete() {
         <div>
           <label class="block text-sm font-medium text-ink-600 mb-1.5">
             Ngày hẹn trả *
-            <span class="text-ink-400 font-normal">(tối đa {{ MAX_LOAN_DAYS / 7 }} tuần)</span>
+            <span class="text-ink-400 font-normal"
+              >(tối đa {{ MAX_LOAN_DAYS / 7 }} tuần)</span
+            >
           </label>
           <input
             v-model="borrowForm.NgayHenTra"
-            type="date"
+            type="text"
+            inputmode="numeric"
+            placeholder="dd/mm/yyyy"
             required
-            :min="minDueDate"
-            :max="maxDueDate"
             class="input"
           />
+          <p class="mt-1 text-xs text-ink-400">
+            Chấp nhận định dạng dd/mm/yyyy, trong khoảng
+            {{ toDisplayDate(minDueDate) }} - {{ toDisplayDate(maxDueDate) }}
+          </p>
         </div>
 
         <div v-if="auth.isReader">
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Phương thức nhận sách *</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Phương thức nhận sách *</label
+          >
           <div class="grid grid-cols-2 gap-3">
             <label
               :class="[
                 'flex items-center gap-2 px-4 py-3 rounded-xl border cursor-pointer text-sm',
-                borrowForm.PhuongThucNhan === 'NhanTrucTiep' ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-600',
+                borrowForm.PhuongThucNhan === 'NhanTrucTiep'
+                  ? 'border-brand-500 bg-brand-50 text-brand-700'
+                  : 'border-ink-200 text-ink-600',
               ]"
             >
-              <input v-model="borrowForm.PhuongThucNhan" type="radio" value="NhanTrucTiep" class="accent-brand-600" />
+              <input
+                v-model="borrowForm.PhuongThucNhan"
+                type="radio"
+                value="NhanTrucTiep"
+                class="accent-brand-600"
+              />
               🏬 Nhận tại thư viện
             </label>
             <label
               :class="[
                 'flex items-center gap-2 px-4 py-3 rounded-xl border cursor-pointer text-sm',
-                borrowForm.PhuongThucNhan === 'GiaoHang' ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-ink-200 text-ink-600',
+                borrowForm.PhuongThucNhan === 'GiaoHang'
+                  ? 'border-brand-500 bg-brand-50 text-brand-700'
+                  : 'border-ink-200 text-ink-600',
               ]"
             >
-              <input v-model="borrowForm.PhuongThucNhan" type="radio" value="GiaoHang" class="accent-brand-600" />
+              <input
+                v-model="borrowForm.PhuongThucNhan"
+                type="radio"
+                value="GiaoHang"
+                class="accent-brand-600"
+              />
               🚚 Giao hàng
             </label>
           </div>
         </div>
       </form>
       <template #footer>
-        <button class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100" @click="showBorrow = false">
+        <button
+          class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100"
+          @click="showBorrow = false"
+        >
           Hủy
         </button>
         <button
@@ -287,37 +349,78 @@ async function submitDelete() {
 
     <!-- Dialog sửa sách -->
     <AppModal v-model="showEdit" title="Sửa thông tin sách" width="max-w-lg">
-      <form class="grid grid-cols-1 sm:grid-cols-2 gap-4" @submit.prevent="submitEdit">
+      <form
+        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        @submit.prevent="submitEdit"
+      >
         <div class="sm:col-span-2">
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Tên sách *</label>
-          <input v-model="editForm.TenSach" required type="text" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Tên sách *</label
+          >
+          <input
+            v-model="editForm.TenSach"
+            required
+            type="text"
+            class="input"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Tác giả</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Tác giả</label
+          >
           <input v-model="editForm.NguonGocTacGia" type="text" class="input" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Năm xuất bản</label>
-          <input v-model.number="editForm.NamXuatBan" type="number" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Năm xuất bản</label
+          >
+          <input
+            v-model.number="editForm.NamXuatBan"
+            type="number"
+            class="input"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Đơn giá *</label>
-          <input v-model.number="editForm.DonGia" required type="number" min="0" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Đơn giá *</label
+          >
+          <input
+            v-model.number="editForm.DonGia"
+            required
+            type="number"
+            min="0"
+            class="input"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Số quyển *</label>
-          <input v-model.number="editForm.SoQuyen" required type="number" min="0" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Số quyển *</label
+          >
+          <input
+            v-model.number="editForm.SoQuyen"
+            required
+            type="number"
+            min="0"
+            class="input"
+          />
         </div>
         <div class="sm:col-span-2">
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Nhà xuất bản *</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Nhà xuất bản *</label
+          >
           <select v-model="editForm.MaNXB" required class="input">
             <option value="" disabled>-- Chọn nhà xuất bản --</option>
-            <option v-for="p in publishers" :key="p._id" :value="p._id">{{ p.TenNXB }}</option>
+            <option v-for="p in publishers" :key="p._id" :value="p._id">
+              {{ p.TenNXB }}
+            </option>
           </select>
         </div>
       </form>
       <template #footer>
-        <button class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100" @click="showEdit = false">
+        <button
+          class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100"
+          @click="showEdit = false"
+        >
           Hủy
         </button>
         <button

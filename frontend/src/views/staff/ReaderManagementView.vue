@@ -1,8 +1,14 @@
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { useToastStore, extractErrorMessage } from "../../stores/toast";
-import { getReaders, createReader, updateReader, deleteReader, resetReaderPassword } from "../../api/reader.api";
-import { formatDate, toInputDate } from "../../utils/date";
+import {
+  getReaders,
+  createReader,
+  updateReader,
+  deleteReader,
+  resetReaderPassword,
+} from "../../api/reader.api";
+import { formatDate, toDisplayDate, toApiDate } from "../../utils/date";
 import Spinner from "../../components/ui/Spinner.vue";
 import EmptyState from "../../components/ui/EmptyState.vue";
 import AppModal from "../../components/ui/AppModal.vue";
@@ -59,7 +65,15 @@ const form = reactive({
 
 function openCreate() {
   editingReader.value = null;
-  Object.assign(form, { HoLot: "", Ten: "", NgaySinh: "", Phai: "", DiaChi: "", DienThoai: "", Password: "" });
+  Object.assign(form, {
+    HoLot: "",
+    Ten: "",
+    NgaySinh: "",
+    Phai: "",
+    DiaChi: "",
+    DienThoai: "",
+    Password: "",
+  });
   showForm.value = true;
 }
 
@@ -68,7 +82,7 @@ function openEdit(reader) {
   Object.assign(form, {
     HoLot: reader.HoLot,
     Ten: reader.Ten,
-    NgaySinh: toInputDate(reader.NgaySinh),
+    NgaySinh: toDisplayDate(reader.NgaySinh),
     Phai: reader.Phai || "",
     DiaChi: reader.DiaChi || "",
     DienThoai: reader.DienThoai || "",
@@ -82,6 +96,8 @@ async function submitForm() {
   try {
     if (editingReader.value) {
       const payload = { ...form };
+      payload.NgaySinh = toApiDate(payload.NgaySinh);
+      if (!payload.NgaySinh) delete payload.NgaySinh;
       delete payload.Password;
       await updateReader(editingReader.value.MaDocGia, payload);
       if (form.Password) {
@@ -133,7 +149,10 @@ async function confirmDelete() {
         <h1 class="text-xl font-semibold text-ink-800">Độc giả</h1>
         <p class="text-sm text-ink-400 mt-0.5">Quản lý thông tin độc giả</p>
       </div>
-      <button class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium" @click="openCreate">
+      <button
+        class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium"
+        @click="openCreate"
+      >
         + Thêm độc giả
       </button>
     </div>
@@ -152,7 +171,10 @@ async function confirmDelete() {
         <Spinner />
       </div>
 
-      <EmptyState v-else-if="!filteredReaders.length" title="Không tìm thấy độc giả" />
+      <EmptyState
+        v-else-if="!filteredReaders.length"
+        title="Không tìm thấy độc giả"
+      />
 
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -166,10 +188,18 @@ async function confirmDelete() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="r in filteredReaders" :key="r._id" class="border-b border-ink-50 hover:bg-ink-50/60">
-              <td class="px-5 py-3 font-medium text-ink-700">{{ r.MaDocGia }}</td>
+            <tr
+              v-for="r in filteredReaders"
+              :key="r._id"
+              class="border-b border-ink-50 hover:bg-ink-50/60"
+            >
+              <td class="px-5 py-3 font-medium text-ink-700">
+                {{ r.MaDocGia }}
+              </td>
               <td class="px-5 py-3 text-ink-700">{{ r.HoLot }} {{ r.Ten }}</td>
-              <td class="px-5 py-3 text-ink-500">{{ formatDate(r.NgaySinh) }}</td>
+              <td class="px-5 py-3 text-ink-500">
+                {{ formatDate(r.NgaySinh) }}
+              </td>
               <td class="px-5 py-3 text-ink-500">{{ r.DienThoai || "—" }}</td>
               <td class="px-5 py-3 text-right space-x-2">
                 <button
@@ -191,22 +221,43 @@ async function confirmDelete() {
       </div>
     </div>
 
-    <AppModal v-model="showForm" :title="editingReader ? 'Sửa thông tin độc giả' : 'Thêm độc giả'" width="max-w-lg">
-      <form class="grid grid-cols-1 sm:grid-cols-2 gap-4" @submit.prevent="submitForm">
+    <AppModal
+      v-model="showForm"
+      :title="editingReader ? 'Sửa thông tin độc giả' : 'Thêm độc giả'"
+      width="max-w-lg"
+    >
+      <form
+        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        @submit.prevent="submitForm"
+      >
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Họ và tên lót *</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Họ và tên lót *</label
+          >
           <input v-model="form.HoLot" required type="text" class="input" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Tên *</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Tên *</label
+          >
           <input v-model="form.Ten" required type="text" class="input" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Ngày sinh</label>
-          <input v-model="form.NgaySinh" type="date" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Ngày sinh</label
+          >
+          <input
+            v-model="form.NgaySinh"
+            type="text"
+            inputmode="numeric"
+            placeholder="dd/mm/yyyy"
+            class="input"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Giới tính</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Giới tính</label
+          >
           <select v-model="form.Phai" class="input">
             <option value="">-- Chọn --</option>
             <option value="Nam">Nam</option>
@@ -215,22 +266,35 @@ async function confirmDelete() {
           </select>
         </div>
         <div class="sm:col-span-2">
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Địa chỉ</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Địa chỉ</label
+          >
           <input v-model="form.DiaChi" type="text" class="input" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Điện thoại</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Điện thoại</label
+          >
           <input v-model="form.DienThoai" type="tel" class="input" />
         </div>
         <div>
           <label class="block text-sm font-medium text-ink-600 mb-1.5">
             {{ editingReader ? "Đặt lại mật khẩu" : "Mật khẩu *" }}
           </label>
-          <input v-model="form.Password" :required="!editingReader" type="password" class="input" placeholder="••••••••" />
+          <input
+            v-model="form.Password"
+            :required="!editingReader"
+            type="password"
+            class="input"
+            placeholder="••••••••"
+          />
         </div>
       </form>
       <template #footer>
-        <button class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100" @click="showForm = false">
+        <button
+          class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100"
+          @click="showForm = false"
+        >
           Hủy
         </button>
         <button

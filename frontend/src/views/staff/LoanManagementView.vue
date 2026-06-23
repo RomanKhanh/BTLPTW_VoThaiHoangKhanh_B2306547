@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useToastStore, extractErrorMessage } from "../../stores/toast";
 import { getLoans, returnLoan } from "../../api/monitorLoan.api";
 import { formatDate, isOverdue, daysLeft } from "../../utils/date";
+import { toApiDate } from "../../utils/date";
 import Spinner from "../../components/ui/Spinner.vue";
 import EmptyState from "../../components/ui/EmptyState.vue";
 import StatusBadge from "../../components/ui/StatusBadge.vue";
@@ -44,13 +45,15 @@ async function loadLoans() {
     } else {
       filter = {
         MaDocGia: searchForm.MaDocGia || undefined,
-        NgayMuon: searchForm.NgayMuon || undefined,
-        NgayTra: searchForm.NgayTra || undefined,
+        NgayMuon: toApiDate(searchForm.NgayMuon) || undefined,
+        NgayTra: toApiDate(searchForm.NgayTra) || undefined,
       };
     }
     loans.value = await getLoans(filter);
   } catch (err) {
-    toast.error(extractErrorMessage(err, "Không tải được danh sách phiếu mượn"));
+    toast.error(
+      extractErrorMessage(err, "Không tải được danh sách phiếu mượn"),
+    );
   } finally {
     loading.value = false;
   }
@@ -101,14 +104,20 @@ async function confirmReturn() {
 <template>
   <div>
     <h1 class="text-xl font-semibold text-ink-800">Quản lý mượn sách</h1>
-    <p class="text-sm text-ink-400 mt-0.5 mb-5">Theo dõi các phiếu mượn sách của độc giả</p>
+    <p class="text-sm text-ink-400 mt-0.5 mb-5">
+      Theo dõi các phiếu mượn sách của độc giả
+    </p>
 
     <div class="flex bg-ink-100 rounded-xl p-1 mb-5 w-full sm:w-fit">
       <button
         v-for="t in tabs"
         :key="t.key"
         class="px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1 sm:flex-none"
-        :class="activeTab === t.key ? 'bg-white text-brand-700 shadow-sm' : 'text-ink-500'"
+        :class="
+          activeTab === t.key
+            ? 'bg-white text-brand-700 shadow-sm'
+            : 'text-ink-500'
+        "
         @click="activeTab = t.key"
       >
         {{ t.label }}
@@ -116,25 +125,61 @@ async function confirmReturn() {
     </div>
 
     <!-- Form tìm kiếm -->
-    <div v-if="activeTab === 'timKiem'" class="bg-white rounded-2xl border border-ink-100 shadow-sm p-5 mb-5">
-      <form class="grid grid-cols-1 sm:grid-cols-3 gap-4" @submit.prevent="submitSearch">
+    <div
+      v-if="activeTab === 'timKiem'"
+      class="bg-white rounded-2xl border border-ink-100 shadow-sm p-5 mb-5"
+    >
+      <form
+        class="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        @submit.prevent="submitSearch"
+      >
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Mã độc giả</label>
-          <input v-model="searchForm.MaDocGia" type="text" placeholder="VD: DG001" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Mã độc giả</label
+          >
+          <input
+            v-model="searchForm.MaDocGia"
+            type="text"
+            placeholder="VD: DG001"
+            class="input"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Ngày mượn</label>
-          <input v-model="searchForm.NgayMuon" type="date" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Ngày mượn</label
+          >
+          <input
+            v-model="searchForm.NgayMuon"
+            type="text"
+            inputmode="numeric"
+            placeholder="dd/mm/yyyy"
+            class="input"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Ngày trả</label>
-          <input v-model="searchForm.NgayTra" type="date" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Ngày trả</label
+          >
+          <input
+            v-model="searchForm.NgayTra"
+            type="text"
+            inputmode="numeric"
+            placeholder="dd/mm/yyyy"
+            class="input"
+          />
         </div>
         <div class="sm:col-span-3 flex gap-3">
-          <button type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium">
+          <button
+            type="submit"
+            class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium"
+          >
             Tìm kiếm
           </button>
-          <button type="button" class="px-4 py-2 rounded-xl border border-ink-200 text-ink-600 hover:bg-ink-50 text-sm font-medium" @click="resetSearch">
+          <button
+            type="button"
+            class="px-4 py-2 rounded-xl border border-ink-200 text-ink-600 hover:bg-ink-50 text-sm font-medium"
+            @click="resetSearch"
+          >
             Đặt lại
           </button>
         </div>
@@ -162,20 +207,38 @@ async function confirmReturn() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="loan in loans" :key="loan._id" class="border-b border-ink-50 hover:bg-ink-50/60">
+            <tr
+              v-for="loan in loans"
+              :key="loan._id"
+              class="border-b border-ink-50 hover:bg-ink-50/60"
+            >
               <td class="px-5 py-3 text-ink-700">
                 {{ loan.MaDocGia?.HoLot }} {{ loan.MaDocGia?.Ten }}
-                <span class="text-ink-400">({{ loan.MaDocGia?.MaDocGia }})</span>
+                <span class="text-ink-400"
+                  >({{ loan.MaDocGia?.MaDocGia }})</span
+                >
               </td>
               <td class="px-5 py-3 text-ink-700">{{ loan.MaSach?.TenSach }}</td>
-              <td class="px-5 py-3 text-ink-500">{{ formatDate(loan.NgayMuon) }}</td>
-              <td class="px-5 py-3 text-ink-500">{{ formatDate(loan.NgayHenTra) }}</td>
               <td class="px-5 py-3 text-ink-500">
-                {{ loan.PhuongThucNhan === "GiaoHang" ? "🚚 Giao hàng" : "🏬 Nhận trực tiếp" }}
+                {{ formatDate(loan.NgayMuon) }}
+              </td>
+              <td class="px-5 py-3 text-ink-500">
+                {{ formatDate(loan.NgayHenTra) }}
+              </td>
+              <td class="px-5 py-3 text-ink-500">
+                {{
+                  loan.PhuongThucNhan === "GiaoHang"
+                    ? "🚚 Giao hàng"
+                    : "🏬 Nhận trực tiếp"
+                }}
               </td>
               <td class="px-5 py-3">
-                <StatusBadge v-if="loan.NgayTra" tone="success">Đã trả {{ formatDate(loan.NgayTra) }}</StatusBadge>
-                <StatusBadge v-else-if="isOverdue(loan)" tone="danger">Quá hạn {{ Math.abs(daysLeft(loan)) }} ngày</StatusBadge>
+                <StatusBadge v-if="loan.NgayTra" tone="success"
+                  >Đã trả {{ formatDate(loan.NgayTra) }}</StatusBadge
+                >
+                <StatusBadge v-else-if="isOverdue(loan)" tone="danger"
+                  >Quá hạn {{ Math.abs(daysLeft(loan)) }} ngày</StatusBadge
+                >
                 <StatusBadge v-else tone="warning">Chưa trả</StatusBadge>
               </td>
               <td class="px-5 py-3 text-right">
