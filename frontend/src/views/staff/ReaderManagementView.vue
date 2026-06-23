@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import { useToastStore, extractErrorMessage } from "../../stores/toast";
 import {
   getReaders,
@@ -13,16 +13,28 @@ import Spinner from "../../components/ui/Spinner.vue";
 import EmptyState from "../../components/ui/EmptyState.vue";
 import AppModal from "../../components/ui/AppModal.vue";
 import ConfirmDialog from "../../components/ui/ConfirmDialog.vue";
+import Pagination from "../../components/ui/Pagination.vue";
 
 const toast = useToastStore();
 const loading = ref(true);
 const readers = ref([]);
+const filteredReaders = ref([]);
+const page = ref(1);
+const totalPages = ref(1);
 const search = ref("");
+let searchDebounce = null;
 
 async function loadReaders() {
   loading.value = true;
   try {
-    readers.value = await getReaders();
+    const res = await getReaders({
+      search: search.value || undefined,
+      page: page.value,
+      limit: 10,
+    });
+    readers.value = res.data;
+    filteredReaders.value = res.data;
+    totalPages.value = res.pagination?.totalPages || 1;
   } catch (err) {
     toast.error(extractErrorMessage(err, "Không tải được danh sách độc giả"));
   } finally {
@@ -31,23 +43,15 @@ async function loadReaders() {
 }
 onMounted(loadReaders);
 
-const filteredReaders = ref([]);
-function applySearch() {
-  const q = search.value.trim().toLowerCase();
-  if (!q) {
-    filteredReaders.value = readers.value;
-    return;
-  }
-  filteredReaders.value = readers.value.filter(
-    (r) =>
-      r.MaDocGia?.toLowerCase().includes(q) ||
-      `${r.HoLot} ${r.Ten}`.toLowerCase().includes(q),
-  );
-}
+watch(search, () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    page.value = 1;
+    loadReaders();
+  }, 350);
+});
 
-import { watch } from "vue";
-watch(readers, applySearch, { immediate: true });
-watch(search, applySearch);
+watch(page, loadReaders);
 
 // ---- Tạo / sửa độc giả ----
 const showForm = ref(false);
@@ -94,10 +98,11 @@ function openEdit(reader) {
 async function submitForm() {
   saving.value = true;
   try {
+    const payload = { ...form };
+    payload.NgaySinh = toApiDate(payload.NgaySinh);
+    if (!payload.NgaySinh) delete payload.NgaySinh;
+
     if (editingReader.value) {
-      const payload = { ...form };
-      payload.NgaySinh = toApiDate(payload.NgaySinh);
-      if (!payload.NgaySinh) delete payload.NgaySinh;
       delete payload.Password;
       await updateReader(editingReader.value.MaDocGia, payload);
       if (form.Password) {
@@ -105,7 +110,7 @@ async function submitForm() {
       }
       toast.success("Cập nhật độc giả thành công");
     } else {
-      await createReader({ ...form });
+      await createReader(payload);
       toast.success("Thêm độc giả thành công");
     }
     showForm.value = false;
@@ -140,6 +145,22 @@ async function confirmDelete() {
     deleting.value = false;
   }
 }
+
+function applySearch() {
+  const q = search.value.trim().toLowerCase();
+  if (!q) {
+    filteredReaders.value = readers.value;
+    return;
+  }
+  filteredReaders.value = readers.value.filter(
+    (r) =>
+      r.MaDocGia?.toLowerCase().includes(q) ||
+      `${r.HoLot} ${r.Ten}`.toLowerCase().includes(q),
+  );
+}
+
+watch(search, applySearch);
+watch(readers, applySearch, { immediate: true });
 </script>
 
 <template>
@@ -218,6 +239,12 @@ async function confirmDelete() {
             </tr>
           </tbody>
         </table>
+      </div>
+      <div
+        class="p-4 border-t border-ink-100"
+        v-if="!loading && readers.length"
+      >
+        <Pagination v-model:page="page" :total-pages="totalPages" />
       </div>
     </div>
 

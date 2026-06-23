@@ -1,7 +1,7 @@
 import http from "./http";
 
 export function getReaders(filter = {}) {
-  return http.get("/readers", { params: filter }).then((r) => r.data.data);
+  return http.get("/readers", { params: filter }).then((r) => r.data);
 }
 
 export function getReaderByMaDocGia(MaDocGia) {

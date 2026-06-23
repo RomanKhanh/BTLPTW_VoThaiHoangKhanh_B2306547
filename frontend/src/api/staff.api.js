@@ -1,7 +1,7 @@
 import http from "./http";
 
-export function getAllStaff() {
-  return http.get("/staff").then((r) => r.data.data);
+export function getAllStaff(filter = {}) {
+  return http.get("/staff", { params: filter }).then((r) => r.data);
 }
 
 export function getStaffByMSNV(MSNV) {
@@ -17,5 +17,7 @@ export function updateStaff(MSNV, payload) {
 }
 
 export function changeStaffPassword(MSNV, payload) {
-  return http.patch(`/staff/${MSNV}/change-password`, payload).then((r) => r.data);
+  return http
+    .patch(`/staff/${MSNV}/change-password`, payload)
+    .then((r) => r.data);
 }

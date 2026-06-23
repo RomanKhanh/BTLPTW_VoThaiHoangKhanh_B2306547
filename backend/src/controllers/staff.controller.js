@@ -17,8 +17,24 @@ exports.createStaff = async (req, res, next) => {
 
 exports.getAllStaff = async (req, res, next) => {
   try {
-    const result = await staffService.getAllStaff();
-    res.status(200).json({ success: true, data: result });
+    const { search, page, limit } = req.query;
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    const filter = {};
+
+    if (search) {
+      filter.$or = [
+        { MSNV: { $regex: search, $options: "i" } },
+        { HoTenNV: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const result = await staffService.getAllStaff(filter, pageNum, limitNum);
+    res.status(200).json({
+      success: true,
+      data: result.data,
+      pagination: result.pagination,
+    });
   } catch (err) {
     next(err);
   }

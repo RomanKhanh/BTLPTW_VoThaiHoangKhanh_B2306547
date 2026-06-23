@@ -3,6 +3,7 @@ import { ref, reactive, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToastStore, extractErrorMessage } from "../../stores/toast";
 import { getLoans, returnLoan } from "../../api/monitorLoan.api";
+import Pagination from "../../components/ui/Pagination.vue";
 import { formatDate, isOverdue, daysLeft } from "../../utils/date";
 import { toApiDate } from "../../utils/date";
 import Spinner from "../../components/ui/Spinner.vue";
@@ -27,6 +28,8 @@ watch(activeTab, (val) => {
 
 const loading = ref(true);
 const loans = ref([]);
+const page = ref(1);
+const totalPages = ref(1);
 
 const searchForm = reactive({
   MaDocGia: "",
@@ -37,19 +40,25 @@ const searchForm = reactive({
 async function loadLoans() {
   loading.value = true;
   try {
-    let filter = {};
+    let filter = {
+      page: page.value,
+      limit: 10,
+    };
     if (activeTab.value === "chuaTra") {
-      filter = { returned: "false" };
+      filter = { ...filter, returned: "false" };
     } else if (activeTab.value === "quaHan") {
-      filter = { quaHan: "true" };
+      filter = { ...filter, quaHan: "true" };
     } else {
       filter = {
+        ...filter,
         MaDocGia: searchForm.MaDocGia || undefined,
         NgayMuon: toApiDate(searchForm.NgayMuon) || undefined,
         NgayTra: toApiDate(searchForm.NgayTra) || undefined,
       };
     }
-    loans.value = await getLoans(filter);
+    const res = await getLoans(filter);
+    loans.value = res.data;
+    totalPages.value = res.pagination?.totalPages || 1;
   } catch (err) {
     toast.error(
       extractErrorMessage(err, "Không tải được danh sách phiếu mượn"),
@@ -60,8 +69,11 @@ async function loadLoans() {
 }
 
 watch(activeTab, () => {
+  page.value = 1;
   if (activeTab.value !== "timKiem") loadLoans();
 });
+
+watch(page, loadLoans);
 
 onMounted(loadLoans);
 
@@ -253,6 +265,9 @@ async function confirmReturn() {
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="p-4 border-t border-ink-100" v-if="!loading && loans.length">
+        <Pagination v-model:page="page" :total-pages="totalPages" />
       </div>
     </div>
 

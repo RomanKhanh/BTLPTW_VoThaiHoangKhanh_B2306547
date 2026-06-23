@@ -28,8 +28,22 @@ exports.createReader = async (data) => {
   return toPublicReader(newReader);
 };
 
-exports.getReadersByfilter = async (filter = {}) => {
-  return await Reader.find(filter).select("-Password");
+exports.getReadersByfilter = async (filter = {}, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  const [readers, total] = await Promise.all([
+    Reader.find(filter).select("-Password").skip(skip).limit(limit),
+    Reader.countDocuments(filter),
+  ]);
+
+  return {
+    data: readers,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 1,
+    },
+  };
 };
 
 exports.getReaderByMaDocGia = async (MaDocGia) => {

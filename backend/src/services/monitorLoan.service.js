@@ -86,11 +86,27 @@ exports.createMonitorLoan = async (data) => {
     .populate("MaSach", "MaSach TenSach");
 };
 
-exports.getMonitorLoanByFilter = async (filter = {}) => {
-  return await MonitorLoan.find(filter)
-    .sort({ NgayMuon: -1 })
-    .populate("MaDocGia", "MaDocGia HoLot Ten")
-    .populate("MaSach", "MaSach TenSach");
+exports.getMonitorLoanByFilter = async (filter = {}, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  const [loanRecords, total] = await Promise.all([
+    MonitorLoan.find(filter)
+      .sort({ NgayMuon: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("MaDocGia", "MaDocGia HoLot Ten")
+      .populate("MaSach", "MaSach TenSach"),
+    MonitorLoan.countDocuments(filter),
+  ]);
+
+  return {
+    data: loanRecords,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 1,
+    },
+  };
 };
 
 exports.getMonitorLoanByIdDocGia = async (idDG) => {

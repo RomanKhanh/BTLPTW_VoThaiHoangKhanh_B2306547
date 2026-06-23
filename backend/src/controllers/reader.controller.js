@@ -29,8 +29,20 @@ exports.getReaderByMaDocGia = async (req, res, next) => {
 
 exports.getReaders = async (req, res, next) => {
   try {
-    const { HoLot, Ten, DiaChi, Phai, NgaySinh, DienThoai } = req.query;
+    const {
+      HoLot,
+      Ten,
+      DiaChi,
+      Phai,
+      NgaySinh,
+      DienThoai,
+      search,
+      page,
+      limit,
+    } = req.query;
     const filter = {};
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
 
     if (HoLot) {
       filter.HoLot = {
@@ -68,8 +80,24 @@ exports.getReaders = async (req, res, next) => {
       filter.DienThoai = DienThoai;
     }
 
-    const readers = await readerService.getReadersByfilter(filter);
-    res.status(200).json({ success: true, data: readers });
+    if (search) {
+      filter.$or = [
+        { MaDocGia: { $regex: search, $options: "i" } },
+        { HoLot: { $regex: search, $options: "i" } },
+        { Ten: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const readers = await readerService.getReadersByfilter(
+      filter,
+      pageNum,
+      limitNum,
+    );
+    res.status(200).json({
+      success: true,
+      data: readers.data,
+      pagination: readers.pagination,
+    });
   } catch (err) {
     next(err);
   }

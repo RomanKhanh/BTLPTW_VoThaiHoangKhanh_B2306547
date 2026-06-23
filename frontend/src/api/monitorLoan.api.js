@@ -2,7 +2,7 @@ import http from "./http";
 
 // filter: { MaDocGia, MaSach, NgayTra, NgayMuon, returned, quaHan }
 export function getLoans(filter = {}) {
-  return http.get("/monitor-loans", { params: filter }).then((r) => r.data.data);
+  return http.get("/monitor-loans", { params: filter }).then((r) => r.data);
 }
 
 export function getLoansByReaderId(idDG) {

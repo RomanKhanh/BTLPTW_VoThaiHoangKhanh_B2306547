@@ -1,19 +1,35 @@
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import { useToastStore, extractErrorMessage } from "../../stores/toast";
-import { getAllStaff, createStaff, updateStaff, changeStaffPassword } from "../../api/staff.api";
+import {
+  getAllStaff,
+  createStaff,
+  updateStaff,
+  changeStaffPassword,
+} from "../../api/staff.api";
 import Spinner from "../../components/ui/Spinner.vue";
 import EmptyState from "../../components/ui/EmptyState.vue";
 import AppModal from "../../components/ui/AppModal.vue";
+import Pagination from "../../components/ui/Pagination.vue";
 
 const toast = useToastStore();
 const loading = ref(true);
 const staffList = ref([]);
+const page = ref(1);
+const totalPages = ref(1);
+const search = ref("");
+let searchDebounce = null;
 
 async function loadStaff() {
   loading.value = true;
   try {
-    staffList.value = await getAllStaff();
+    const res = await getAllStaff({
+      search: search.value || undefined,
+      page: page.value,
+      limit: 10,
+    });
+    staffList.value = res.data;
+    totalPages.value = res.pagination?.totalPages || 1;
   } catch (err) {
     toast.error(extractErrorMessage(err, "Không tải được danh sách nhân viên"));
   } finally {
@@ -21,6 +37,16 @@ async function loadStaff() {
   }
 }
 onMounted(loadStaff);
+
+watch(search, () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    page.value = 1;
+    loadStaff();
+  }, 350);
+});
+
+watch(page, loadStaff);
 
 // ---- Tạo / sửa nhân viên ----
 const showForm = ref(false);
@@ -36,7 +62,13 @@ const form = reactive({
 
 function openCreate() {
   editingStaff.value = null;
-  Object.assign(form, { HoTenNV: "", ChucVu: "", DiaChi: "", SoDienThoai: "", Password: "" });
+  Object.assign(form, {
+    HoTenNV: "",
+    ChucVu: "",
+    DiaChi: "",
+    SoDienThoai: "",
+    Password: "",
+  });
   showForm.value = true;
 }
 
@@ -56,7 +88,12 @@ async function submitForm() {
   saving.value = true;
   try {
     if (editingStaff.value) {
-      const payload = { HoTenNV: form.HoTenNV, ChucVu: form.ChucVu, DiaChi: form.DiaChi, SoDienThoai: form.SoDienThoai };
+      const payload = {
+        HoTenNV: form.HoTenNV,
+        ChucVu: form.ChucVu,
+        DiaChi: form.DiaChi,
+        SoDienThoai: form.SoDienThoai,
+      };
       await updateStaff(editingStaff.value.MSNV, payload);
       toast.success("Cập nhật nhân viên thành công");
     } else {
@@ -112,7 +149,9 @@ async function submitChangePwd() {
     <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
       <div>
         <h1 class="text-xl font-semibold text-ink-800">Nhân viên</h1>
-        <p class="text-sm text-ink-400 mt-0.5">Quản lý tài khoản nhân viên thư viện</p>
+        <p class="text-sm text-ink-400 mt-0.5">
+          Quản lý tài khoản nhân viên thư viện
+        </p>
       </div>
       <button
         class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium"
@@ -123,6 +162,14 @@ async function submitChangePwd() {
     </div>
 
     <div class="bg-white rounded-2xl border border-ink-100 shadow-sm">
+      <div class="p-4 border-b border-ink-100">
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Tìm theo MSNV hoặc tên nhân viên..."
+          class="w-full max-w-sm px-3.5 py-2.5 rounded-xl border border-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400"
+        />
+      </div>
       <div v-if="loading" class="flex justify-center py-16"><Spinner /></div>
 
       <EmptyState v-else-if="!staffList.length" title="Chưa có nhân viên nào" />
@@ -166,6 +213,12 @@ async function submitChangePwd() {
           </tbody>
         </table>
       </div>
+      <div
+        class="p-4 border-t border-ink-100"
+        v-if="!loading && staffList.length"
+      >
+        <Pagination v-model:page="page" :total-pages="totalPages" />
+      </div>
     </div>
 
     <!-- Form thêm/sửa nhân viên -->
@@ -175,68 +228,125 @@ async function submitChangePwd() {
     >
       <form class="space-y-4" @submit.prevent="submitForm">
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Họ tên *</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Họ tên *</label
+          >
           <input v-model="form.HoTenNV" required type="text" class="input" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Chức vụ</label>
-          <input v-model="form.ChucVu" type="text" class="input" placeholder="VD: Thủ thư" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Chức vụ</label
+          >
+          <input
+            v-model="form.ChucVu"
+            type="text"
+            class="input"
+            placeholder="VD: Thủ thư"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Địa chỉ</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Địa chỉ</label
+          >
           <input v-model="form.DiaChi" type="text" class="input" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Số điện thoại</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Số điện thoại</label
+          >
           <input v-model="form.SoDienThoai" type="tel" class="input" />
         </div>
         <div v-if="!editingStaff">
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Mật khẩu *</label>
-          <input v-model="form.Password" required type="password" class="input" placeholder="••••••••" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Mật khẩu *</label
+          >
+          <input
+            v-model="form.Password"
+            required
+            type="password"
+            class="input"
+            placeholder="••••••••"
+          />
         </div>
       </form>
       <template #footer>
         <button
           class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100"
           @click="showForm = false"
-        >Hủy</button>
+        >
+          Hủy
+        </button>
         <button
           :disabled="saving"
           class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-60"
           @click="submitForm"
-        >{{ saving ? "Đang lưu..." : "Lưu" }}</button>
+        >
+          {{ saving ? "Đang lưu..." : "Lưu" }}
+        </button>
       </template>
     </AppModal>
 
     <!-- Đổi mật khẩu nhân viên -->
     <AppModal v-model="showChangePwd" title="Đổi mật khẩu nhân viên">
       <p class="text-sm text-ink-500 mb-4">
-        Đang đổi mật khẩu cho: <span class="font-medium text-ink-700">{{ pwdTarget?.HoTenNV }} ({{ pwdTarget?.MSNV }})</span>
+        Đang đổi mật khẩu cho:
+        <span class="font-medium text-ink-700"
+          >{{ pwdTarget?.HoTenNV }} ({{ pwdTarget?.MSNV }})</span
+        >
       </p>
       <form class="space-y-4" @submit.prevent="submitChangePwd">
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Mật khẩu hiện tại</label>
-          <input v-model="pwdForm.oldPassword" required type="password" class="input" placeholder="••••••••" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Mật khẩu hiện tại</label
+          >
+          <input
+            v-model="pwdForm.oldPassword"
+            required
+            type="password"
+            class="input"
+            placeholder="••••••••"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Mật khẩu mới</label>
-          <input v-model="pwdForm.newPassword" required type="password" minlength="6" class="input" placeholder="••••••••" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Mật khẩu mới</label
+          >
+          <input
+            v-model="pwdForm.newPassword"
+            required
+            type="password"
+            minlength="6"
+            class="input"
+            placeholder="••••••••"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Xác nhận mật khẩu mới</label>
-          <input v-model="pwdForm.confirmNew" required type="password" class="input" placeholder="••••••••" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Xác nhận mật khẩu mới</label
+          >
+          <input
+            v-model="pwdForm.confirmNew"
+            required
+            type="password"
+            class="input"
+            placeholder="••••••••"
+          />
         </div>
       </form>
       <template #footer>
         <button
           class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100"
           @click="showChangePwd = false"
-        >Hủy</button>
+        >
+          Hủy
+        </button>
         <button
           :disabled="changingPwd"
           class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-60"
           @click="submitChangePwd"
-        >{{ changingPwd ? "Đang lưu..." : "Đổi mật khẩu" }}</button>
+        >
+          {{ changingPwd ? "Đang lưu..." : "Đổi mật khẩu" }}
+        </button>
       </template>
     </AppModal>
   </div>

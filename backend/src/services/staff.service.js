@@ -29,15 +29,28 @@ exports.createStaff = async (data) => {
   };
 };
 
-exports.getAllStaff = async () => {
-  const staffList = await Staff.find();
-  return staffList.map((staff) => ({
-    MSNV: staff.MSNV,
-    HoTenNV: staff.HoTenNV,
-    ChucVu: staff.ChucVu,
-    DiaChi: staff.DiaChi,
-    SoDienThoai: staff.SoDienThoai,
-  }));
+exports.getAllStaff = async (filter = {}, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  const [staffList, total] = await Promise.all([
+    Staff.find(filter).skip(skip).limit(limit).select("-Password"),
+    Staff.countDocuments(filter),
+  ]);
+
+  return {
+    data: staffList.map((staff) => ({
+      MSNV: staff.MSNV,
+      HoTenNV: staff.HoTenNV,
+      ChucVu: staff.ChucVu,
+      DiaChi: staff.DiaChi,
+      SoDienThoai: staff.SoDienThoai,
+    })),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 1,
+    },
+  };
 };
 
 exports.getStaffByMSNV = async (MSNV) => {

@@ -33,8 +33,20 @@ exports.createMonitorLoan = async (req, res, next) => {
 
 exports.getMonitorLoan = async (req, res, next) => {
   try {
-    const { MaDocGia, MaSach, NgayTra, NgayMuon, returned, quaHan } = req.query;
+    const {
+      MaDocGia,
+      MaSach,
+      NgayTra,
+      NgayMuon,
+      returned,
+      quaHan,
+      search,
+      page,
+      limit,
+    } = req.query;
     const filter = {};
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
 
     if (MaDocGia) {
       const idDG = await readerService.getReaderByMaDocGia(MaDocGia);
@@ -89,8 +101,16 @@ exports.getMonitorLoan = async (req, res, next) => {
       };
     }
 
-    const loanRecords = await monitorLoanService.getMonitorLoanByFilter(filter);
-    res.status(200).json({ success: true, data: loanRecords });
+    const loanRecords = await monitorLoanService.getMonitorLoanByFilter(
+      filter,
+      pageNum,
+      limitNum,
+    );
+    res.status(200).json({
+      success: true,
+      data: loanRecords.data,
+      pagination: loanRecords.pagination,
+    });
   } catch (err) {
     next(err);
   }
