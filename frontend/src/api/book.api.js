@@ -1,8 +1,17 @@
 import http from "./http";
 
-export function getBooks({ TenSach, NamXuatBan, publisherId, page = 1, limit = 10 } = {}) {
+export function getBooks({
+  TenSach,
+  NamXuatBan,
+  NguonGocTacGia,
+  publisherId,
+  page = 1,
+  limit = 10,
+} = {}) {
   return http
-    .get("/books", { params: { TenSach, NamXuatBan, publisherId, page, limit } })
+    .get("/books", {
+      params: { TenSach, NamXuatBan, NguonGocTacGia, publisherId, page, limit },
+    })
     .then((r) => r.data); // { success, data, pagination }
 }
 

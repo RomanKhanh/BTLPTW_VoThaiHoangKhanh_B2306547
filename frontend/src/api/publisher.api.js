@@ -1,7 +1,9 @@
 import http from "./http";
 
-export function getPublishers({ page = 1, limit = 100 } = {}) {
-  return http.get("/publishers", { params: { page, limit } }).then((r) => r.data);
+export function getPublishers({ TenNXB, page = 1, limit = 100 } = {}) {
+  return http
+    .get("/publishers", { params: { TenNXB, page, limit } })
+    .then((r) => r.data);
 }
 
 export function getPublisherByMaNXB(MaNXB) {
@@ -13,7 +15,9 @@ export function createPublisher(payload) {
 }
 
 export function updatePublisher(MaNXB, payload) {
-  return http.patch(`/publishers/MaNXB/${MaNXB}`, payload).then((r) => r.data.data);
+  return http
+    .patch(`/publishers/MaNXB/${MaNXB}`, payload)
+    .then((r) => r.data.data);
 }
 
 export function deletePublisher(MaNXB) {

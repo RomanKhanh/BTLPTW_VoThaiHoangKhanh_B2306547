@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import { useToastStore, extractErrorMessage } from "../../stores/toast";
 import {
   getPublishers,
@@ -19,11 +19,17 @@ const loading = ref(true);
 const publishers = ref([]);
 const page = ref(1);
 const totalPages = ref(1);
+const search = ref("");
+let searchDebounce = null;
 
 async function loadPublishers() {
   loading.value = true;
   try {
-    const res = await getPublishers({ page: page.value, limit: 10 });
+    const res = await getPublishers({
+      TenNXB: search.value || undefined,
+      page: page.value,
+      limit: 10,
+    });
     publishers.value = res.data;
     totalPages.value = res.pagination?.totalPages || 1;
   } catch (err) {
@@ -32,10 +38,18 @@ async function loadPublishers() {
     loading.value = false;
   }
 }
-onMounted(loadPublishers);
 
-import { watch } from "vue";
+watch(search, () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    page.value = 1;
+    loadPublishers();
+  }, 350);
+});
+
 watch(page, loadPublishers);
+
+onMounted(loadPublishers);
 
 // ---- Tạo / sửa ----
 const showForm = ref(false);
@@ -124,6 +138,20 @@ async function confirmDelete() {
     </div>
 
     <div class="bg-white rounded-2xl border border-ink-100 shadow-sm">
+      <div class="p-4 border-b border-ink-100">
+        <div class="relative max-w-sm">
+          <input
+            v-model="search"
+            type="text"
+            placeholder="Tìm theo tên Nhà xuất bản..."
+            class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400"
+          />
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"
+            >🔍</span
+          >
+        </div>
+      </div>
+
       <div v-if="loading" class="flex justify-center py-16">
         <Spinner />
       </div>

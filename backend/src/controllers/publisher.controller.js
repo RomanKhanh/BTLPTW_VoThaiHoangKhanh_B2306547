@@ -9,11 +9,26 @@ exports.createPublisher = async (req, res, next) => {
   }
 };
 
-exports.getAllPublishers = async (req, res, next) => {
+exports.getPublishers = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const result = await publisherService.getAllPublishers(page, limit);
+    const { TenNXB, page, limit } = req.query;
+
+    const filter = {};
+    if (TenNXB) {
+      filter.TenNXB = {
+        $regex: TenNXB,
+        $options: "i",
+      };
+    }
+
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+
+    const result = await publisherService.getPublishers(
+      filter,
+      pageNum,
+      limitNum,
+    );
     res.status(200).json({ success: true, ...result });
   } catch (err) {
     next(err);
@@ -22,7 +37,7 @@ exports.getAllPublishers = async (req, res, next) => {
 
 exports.getPublisherByMaNXB = async (req, res, next) => {
   try {
-    const result = await publisherService.getPublisherByCondition({
+    const result = await publisherService.getPublisherByMaNXB({
       MaNXB: req.params.MaNXB,
     });
     res.status(200).json({ success: true, data: result });

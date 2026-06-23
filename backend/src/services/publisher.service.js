@@ -28,12 +28,15 @@ exports.createPublisher = async (data) => {
   return publisher;
 };
 
-exports.getAllPublishers = async (page, limit) => {
+exports.getPublishers = async (filter, page, limit) => {
   const skip = (page - 1) * limit;
 
   const [publishers, total] = await Promise.all([
-    Publisher.find().sort({ TenNXB: 1, MaNXB: 1 }).skip(skip).limit(limit),
-    Publisher.countDocuments(),
+    Publisher.find(filter)
+      .sort({ TenNXB: 1, MaNXB: 1 })
+      .skip(skip)
+      .limit(limit),
+    Publisher.countDocuments(filter),
   ]);
 
   return {
@@ -47,8 +50,8 @@ exports.getAllPublishers = async (page, limit) => {
   };
 };
 
-exports.getPublisherByCondition = async (condition) => {
-  const publisher = await Publisher.findOne(condition);
+exports.getPublisherByMaNXB = async (MaNXB) => {
+  const publisher = await Publisher.findOne({ MaNXB });
   if (!publisher) {
     throw {
       status: 404,

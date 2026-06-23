@@ -2,7 +2,8 @@ const bookService = require("../services/book.service");
 
 exports.getBooks = async (req, res, next) => {
   try {
-    const { TenSach, NamXuatBan, publisherId, page, limit } = req.query;
+    const { TenSach, NamXuatBan, NguonGocTacGia, publisherId, page, limit } =
+      req.query;
 
     const filter = {};
 
@@ -19,6 +20,13 @@ exports.getBooks = async (req, res, next) => {
 
     if (publisherId) {
       filter.MaNXB = publisherId;
+    }
+
+    if (NguonGocTacGia) {
+      filter.NguonGocTacGia = {
+        $regex: NguonGocTacGia,
+        $options: "i",
+      };
     }
 
     const pageNum = parseInt(page) || 1;

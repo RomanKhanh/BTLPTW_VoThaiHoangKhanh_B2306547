@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const { requireRoles } = require("../middleware/auth");
 
-router.get("/", publisherController.getAllPublishers);
+router.get("/", publisherController.getPublishers);
 router.post("/", requireRoles("staff"), publisherController.createPublisher);
 router.get("/MaNXB/:MaNXB", publisherController.getPublisherByMaNXB);
 router.get("/TenNXB/:TenNXB", publisherController.getPublisherByTenNXB);

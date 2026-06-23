@@ -16,7 +16,9 @@ const auth = useAuthStore();
 const toast = useToastStore();
 
 const isStaffArea = computed(() => route.path.startsWith("/staff"));
-const detailRouteName = computed(() => (isStaffArea.value ? "staff-book-detail" : "reader-book-detail"));
+const detailRouteName = computed(() =>
+  isStaffArea.value ? "staff-book-detail" : "reader-book-detail",
+);
 
 const books = ref([]);
 const loading = ref(true);
@@ -28,7 +30,11 @@ let searchDebounce = null;
 async function loadBooks() {
   loading.value = true;
   try {
-    const res = await getBooks({ TenSach: search.value || undefined, page: page.value, limit: 10 });
+    const res = await getBooks({
+      TenSach: search.value || undefined,
+      page: page.value,
+      limit: 10,
+    });
     books.value = res.data;
     totalPages.value = res.pagination?.totalPages || 1;
   } catch (err) {
@@ -38,15 +44,30 @@ async function loadBooks() {
   }
 }
 
+const filteredBooks = ref([]);
+function applySearch() {
+  const q = search.value.trim().toLowerCase();
+  if (!q) {
+    filteredBooks.value = books.value;
+    return;
+  }
+  filteredBooks.value = books.value.filter(
+    (r) =>
+      r.TenSach?.toLowerCase().includes(q) ||
+      r.NguonGocTacGia?.toLowerCase().includes(q),
+  );
+}
+
 watch(search, () => {
   clearTimeout(searchDebounce);
   searchDebounce = setTimeout(() => {
     page.value = 1;
-    loadBooks();
+    applySearch();
   }, 350);
 });
 
 watch(page, loadBooks);
+watch(books, applySearch, { immediate: true });
 
 onMounted(loadBooks);
 
@@ -103,7 +124,11 @@ async function submitCreate() {
           {{ isStaffArea ? "Danh sách sách" : "Mượn sách" }}
         </h1>
         <p class="text-sm text-ink-400 mt-0.5">
-          {{ isStaffArea ? "Quản lý và tìm kiếm sách trong thư viện" : "Tìm và mượn sách bạn muốn đọc" }}
+          {{
+            isStaffArea
+              ? "Quản lý và tìm kiếm sách trong thư viện"
+              : "Tìm và mượn sách bạn muốn đọc"
+          }}
         </p>
       </div>
       <button
@@ -121,10 +146,12 @@ async function submitCreate() {
           <input
             v-model="search"
             type="text"
-            placeholder="Tìm theo tên sách..."
+            placeholder="Tìm theo tên sách hoặc tên tác giả"
             class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-ink-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-400"
           />
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400">🔍</span>
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"
+            >🔍</span
+          >
         </div>
       </div>
 
@@ -133,7 +160,7 @@ async function submitCreate() {
       </div>
 
       <EmptyState
-        v-else-if="!books.length"
+        v-else-if="!filteredBooks.length"
         title="Không tìm thấy sách"
         description="Thử tìm với từ khoá khác."
       />
@@ -152,16 +179,27 @@ async function submitCreate() {
           </thead>
           <tbody>
             <tr
-              v-for="book in books"
+              v-for="book in filteredBooks"
               :key="book._id"
               class="border-b border-ink-50 hover:bg-ink-50/60 transition-colors"
             >
-              <td class="px-4 py-3 font-medium text-ink-700">{{ book.MaSach }}</td>
+              <td class="px-4 py-3 font-medium text-ink-700">
+                {{ book.MaSach }}
+              </td>
               <td class="px-4 py-3 text-ink-700">{{ book.TenSach }}</td>
-              <td class="px-4 py-3 text-ink-500">{{ book.NguonGocTacGia || "—" }}</td>
-              <td class="px-4 py-3 text-ink-500">{{ book.NamXuatBan || "—" }}</td>
+              <td class="px-4 py-3 text-ink-500">
+                {{ book.NguonGocTacGia || "—" }}
+              </td>
+              <td class="px-4 py-3 text-ink-500">
+                {{ book.NamXuatBan || "—" }}
+              </td>
               <td class="px-4 py-3">
-                <span :class="book.SoQuyen > 0 ? 'text-emerald-600' : 'text-rose-500'" class="font-medium">
+                <span
+                  :class="
+                    book.SoQuyen > 0 ? 'text-emerald-600' : 'text-rose-500'
+                  "
+                  class="font-medium"
+                >
                   {{ book.SoQuyen }}
                 </span>
               </td>
@@ -185,37 +223,82 @@ async function submitCreate() {
 
     <!-- Modal thêm sách -->
     <AppModal v-model="showCreate" title="Thêm sách mới" width="max-w-lg">
-      <form class="grid grid-cols-1 sm:grid-cols-2 gap-4" @submit.prevent="submitCreate">
+      <form
+        class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        @submit.prevent="submitCreate"
+      >
         <div class="sm:col-span-2">
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Tên sách *</label>
-          <input v-model="createForm.TenSach" required type="text" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Tên sách *</label
+          >
+          <input
+            v-model="createForm.TenSach"
+            required
+            type="text"
+            class="input"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Tác giả</label>
-          <input v-model="createForm.NguonGocTacGia" type="text" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Tác giả</label
+          >
+          <input
+            v-model="createForm.NguonGocTacGia"
+            type="text"
+            class="input"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Năm xuất bản</label>
-          <input v-model.number="createForm.NamXuatBan" type="number" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Năm xuất bản</label
+          >
+          <input
+            v-model.number="createForm.NamXuatBan"
+            type="number"
+            class="input"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Đơn giá *</label>
-          <input v-model.number="createForm.DonGia" required type="number" min="0" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Đơn giá *</label
+          >
+          <input
+            v-model.number="createForm.DonGia"
+            required
+            type="number"
+            min="0"
+            class="input"
+          />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Số quyển *</label>
-          <input v-model.number="createForm.SoQuyen" required type="number" min="0" class="input" />
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Số quyển *</label
+          >
+          <input
+            v-model.number="createForm.SoQuyen"
+            required
+            type="number"
+            min="0"
+            class="input"
+          />
         </div>
         <div class="sm:col-span-2">
-          <label class="block text-sm font-medium text-ink-600 mb-1.5">Nhà xuất bản *</label>
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >Nhà xuất bản *</label
+          >
           <select v-model="createForm.MaNXB" required class="input">
             <option value="" disabled>-- Chọn nhà xuất bản --</option>
-            <option v-for="p in publishers" :key="p._id" :value="p._id">{{ p.TenNXB }}</option>
+            <option v-for="p in publishers" :key="p._id" :value="p._id">
+              {{ p.TenNXB }}
+            </option>
           </select>
         </div>
       </form>
       <template #footer>
-        <button class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100" @click="showCreate = false">
+        <button
+          class="px-4 py-2 rounded-lg text-sm font-medium text-ink-600 hover:bg-ink-100"
+          @click="showCreate = false"
+        >
           Hủy
         </button>
         <button
