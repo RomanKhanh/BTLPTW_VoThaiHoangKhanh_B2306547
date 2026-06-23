@@ -37,28 +37,41 @@ http.interceptors.response.use(
   async (error) => {
     const { config, response } = error;
 
-    const isAuthError = response?.status === 401 || response?.status === 403;
-    const isRefreshCall = config?.url?.includes("/auth/refresh");
+    //Cai /auth/refresh de cho vui co the khong de cx dc vi da co bareHttp roi ma ko dam xoa
+    const excludedRoutes = ["/auth/login", "/auth/register", "/auth/refresh"];
 
-    if (isAuthError && !config._retry && !isRefreshCall) {
+    const shouldSkipRefresh = excludedRoutes.some((r) =>
+      config?.url?.includes(r),
+    );
+
+    const isAuthError = response?.status === 401 || response?.status === 403;
+
+    if (isAuthError && !config._retry && !shouldSkipRefresh) {
       config._retry = true;
+
       try {
         if (!refreshingPromise) {
           refreshingPromise = refreshAccessToken().finally(() => {
             refreshingPromise = null;
           });
         }
+
         const newToken = await refreshingPromise;
+
         const auth = useAuthStore();
         auth.setAccessToken(newToken);
+
         config.headers.Authorization = `Bearer ${newToken}`;
+
         return http(config);
       } catch (refreshErr) {
         const auth = useAuthStore();
         auth.clearSession();
+
         if (typeof window !== "undefined") {
           window.location.href = "/login";
         }
+
         return Promise.reject(refreshErr);
       }
     }
