@@ -90,6 +90,15 @@ exports.login = async ({ MSNV, MaDocGia, Password, accountId, username }) => {
       throw { status: 401, message: "Sai tài khoản hoặc mật khẩu" };
     }
 
+    if (!reader.isActive) {
+      throw {
+        status: 403,
+        code: "ACCOUNT_PENDING",
+        message:
+          "Tài khoản của bạn đang chờ được duyệt. Vui lòng đăng nhập lại sau khi tài khoản đã được phê duyệt.",
+      };
+    }
+
     const tokens = buildReaderTokens(reader);
 
     await RefreshToken.create({

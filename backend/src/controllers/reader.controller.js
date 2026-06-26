@@ -37,12 +37,18 @@ exports.getReaders = async (req, res, next) => {
       NgaySinh,
       DienThoai,
       search,
+      isActive,
       page,
       limit,
     } = req.query;
     const filter = {};
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 10;
+
+    // Lọc theo trạng thái active nếu được truyền vào
+    if (isActive !== undefined) {
+      filter.isActive = isActive === "true" || isActive === true;
+    }
 
     if (HoLot) {
       filter.HoLot = {
@@ -164,6 +170,20 @@ exports.resetPassword = async (req, res, next) => {
       MaDocGia,
       newPassword,
     );
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.activateReader = async (req, res, next) => {
+  try {
+    const { MaDocGia } = req.params;
+    const { isActive } = req.body;
+    if (typeof isActive !== "boolean") {
+      return next({ status: 400, message: "isActive phải là boolean" });
+    }
+    const result = await readerService.activateReader(MaDocGia, isActive);
     res.status(200).json({ success: true, data: result });
   } catch (error) {
     next(error);

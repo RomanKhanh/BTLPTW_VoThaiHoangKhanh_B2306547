@@ -28,6 +28,12 @@ export function resetReaderPassword(MaDocGia, newPassword) {
     .then((r) => r.data);
 }
 
+export function activateReader(MaDocGia, isActive) {
+  return http
+    .patch(`/readers/${MaDocGia}/activate`, { isActive })
+    .then((r) => r.data.data);
+}
+
 export function deleteReader(MaDocGia) {
   return http.delete(`/readers/${MaDocGia}`).then((r) => r.data);
 }

@@ -71,6 +71,9 @@ async function loadLoans() {
 watch(activeTab, () => {
   page.value = 1;
   if (activeTab.value !== "timKiem") loadLoans();
+  else {
+    loans.value = [];
+  }
 });
 
 watch(page, loadLoans);
@@ -85,7 +88,7 @@ function resetSearch() {
   searchForm.MaDocGia = "";
   searchForm.NgayMuon = "";
   searchForm.NgayTra = "";
-  loadLoans();
+  loans.value = [];
 }
 
 // ---- Trả sách ----

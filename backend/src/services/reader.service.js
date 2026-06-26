@@ -116,6 +116,19 @@ exports.resetPasswordByStaff = async (MaDocGia, newPassword) => {
   };
 };
 
+exports.activateReader = async (MaDocGia, isActive) => {
+  const reader = await Reader.findOne({ MaDocGia });
+  if (!reader) {
+    throw {
+      status: 404,
+      message: `Không tìm thấy độc giả với mã ${MaDocGia}`,
+    };
+  }
+  reader.isActive = isActive;
+  await reader.save();
+  return toPublicReader(reader);
+};
+
 exports.deleteReader = async (MaDocGia) => {
   const reader = await Reader.findOne({ MaDocGia });
   if (!reader) {

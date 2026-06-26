@@ -13,12 +13,14 @@ const toast = useToastStore();
 
 const tab = ref("reader"); // "reader" | "staff"
 const loading = ref(false);
+const pendingMessage = ref(""); // thông báo tài khoản chờ duyệt
 
 const readerForm = reactive({ MaDocGia: "", Password: "" });
 const staffForm = reactive({ MSNV: "", Password: "" });
 
 async function handleSubmit() {
   loading.value = true;
+  pendingMessage.value = "";
   try {
     const credentials =
       tab.value === "reader"
@@ -35,7 +37,13 @@ async function handleSubmit() {
     toast.success("Đăng nhập thành công");
     router.push(data.role === "staff" ? "/staff/home" : "/reader/loans");
   } catch (err) {
-    toast.error(extractErrorMessage(err, "Đăng nhập thất bại"));
+    // Tài khoản chưa được duyệt — hiển thị thông báo inline thay vì toast
+    const responseData = err?.response?.data;
+    if (err?.response?.status === 403 && responseData?.code === "ACCOUNT_PENDING") {
+      pendingMessage.value = responseData.message;
+    } else {
+      toast.error(extractErrorMessage(err, "Đăng nhập thất bại"));
+    }
   } finally {
     loading.value = false;
   }
@@ -78,7 +86,7 @@ async function handleSubmit() {
                 ? 'bg-white text-brand-700 shadow-sm'
                 : 'text-ink-500 hover:text-ink-700'
             "
-            @click="tab = 'reader'"
+            @click="tab = 'reader'; pendingMessage = ''"
           >
             Độc giả
           </button>
@@ -89,7 +97,7 @@ async function handleSubmit() {
                 ? 'bg-white text-brand-700 shadow-sm'
                 : 'text-ink-500 hover:text-ink-700'
             "
-            @click="tab = 'staff'"
+            @click="tab = 'staff'; pendingMessage = ''"
           >
             Nhân viên
           </button>
@@ -162,6 +170,15 @@ async function handleSubmit() {
             <Spinner v-if="loading" size="h-4 w-4" />
             {{ loading ? "Đang đăng nhập..." : "Đăng nhập" }}
           </button>
+
+          <!-- Thông báo tài khoản chờ duyệt -->
+          <div
+            v-if="pendingMessage"
+            class="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800"
+          >
+            <span class="text-lg shrink-0 mt-0.5">⏳</span>
+            <p class="text-sm leading-relaxed">{{ pendingMessage }}</p>
+          </div>
         </form>
 
         <p

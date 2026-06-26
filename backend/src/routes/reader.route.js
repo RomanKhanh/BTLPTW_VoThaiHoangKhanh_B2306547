@@ -22,6 +22,11 @@ router.patch(
   readerController.changePassword,
 );
 router.patch(
+  "/:MaDocGia/activate",
+  requireRoles("staff"),
+  readerController.activateReader,
+);
+router.patch(
   "/:MaDocGia/reset-password",
   requireRoles("staff"),
   readerController.resetPassword,
