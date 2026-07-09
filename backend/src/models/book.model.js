@@ -40,6 +40,11 @@ const BookSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    image: {
+      type: String,
+      trim: true,
+      default: null,
+    },
   },
   {
     timestamps: true,

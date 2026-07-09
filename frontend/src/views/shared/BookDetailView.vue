@@ -104,6 +104,7 @@ const editForm = reactive({
   NamXuatBan: "",
   MaNXB: "",
   NguonGocTacGia: "",
+  image: "",
 });
 
 async function openEdit() {
@@ -113,6 +114,7 @@ async function openEdit() {
   editForm.NamXuatBan = book.value.NamXuatBan;
   editForm.MaNXB = book.value.MaNXB?._id || "";
   editForm.NguonGocTacGia = book.value.NguonGocTacGia;
+  editForm.image = book.value.image || "";
   if (!publishers.value.length) {
     try {
       const res = await getPublishers({ limit: 200 });
@@ -178,7 +180,14 @@ async function submitDelete() {
         <div
           class="w-full sm:w-44 h-60 shrink-0 rounded-xl bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-5xl text-white shadow-inner"
         >
-          📖
+          <template v-if="book.image">
+            <img
+              :src="book.image"
+              alt="Cover"
+              class="w-full h-full object-cover rounded-xl"
+            />
+          </template>
+          <template v-else> 📖 </template>
         </div>
 
         <div class="flex-1">
@@ -414,6 +423,17 @@ async function submitDelete() {
               {{ p.TenNXB }}
             </option>
           </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >URL ảnh bìa</label
+          >
+          <input
+            v-model="editForm.image"
+            type="url"
+            placeholder="https://..."
+            class="input"
+          />
         </div>
       </form>
       <template #footer>

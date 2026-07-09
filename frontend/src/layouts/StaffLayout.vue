@@ -1,11 +1,12 @@
 <script setup>
 import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { useToastStore } from "../stores/toast";
 import { logout as apiLogout } from "../api/auth.api";
 
 const router = useRouter();
+const route = useRoute();
 const auth = useAuthStore();
 const toast = useToastStore();
 const loggingOut = ref(false);
@@ -22,6 +23,10 @@ const allNavItems = [
 const navItems = computed(() =>
   allNavItems.filter((item) => !item.adminOnly || auth.isManager),
 );
+
+function isActiveNav(item) {
+  return route.path === item.to || route.path.startsWith(item.to + "/");
+}
 
 async function handleLogout() {
   loggingOut.value = true;
@@ -61,8 +66,12 @@ async function handleLogout() {
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-400 hover:bg-white/5 hover:text-white transition-all duration-200 hover:translate-x-1"
-          active-class="!bg-brand-600 !text-white shadow-lg shadow-brand-600/15"
+          :class="[
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
+            isActiveNav(item)
+              ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/15 border-l-4 border-white'
+              : 'text-ink-400 hover:bg-white/5 hover:text-white hover:translate-x-1',
+          ]"
         >
           <span class="text-base">{{ item.icon }}</span>
           {{ item.label }}

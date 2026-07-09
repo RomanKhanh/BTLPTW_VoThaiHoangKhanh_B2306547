@@ -86,6 +86,7 @@ const createForm = reactive({
   NamXuatBan: new Date().getFullYear(),
   MaNXB: "",
   NguonGocTacGia: "",
+  image: "",
 });
 
 async function openCreate() {
@@ -292,6 +293,17 @@ async function submitCreate() {
               {{ p.TenNXB }}
             </option>
           </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-medium text-ink-600 mb-1.5"
+            >URL ảnh bìa</label
+          >
+          <input
+            v-model="createForm.image"
+            type="url"
+            placeholder="https://..."
+            class="input"
+          />
         </div>
       </form>
       <template #footer>
