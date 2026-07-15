@@ -119,7 +119,7 @@ router.beforeEach((to) => {
 
   if (to.meta.requiresAuth) {
     if (!auth.isAuthenticated) {
-      return "/login";
+      return { name: "login", query: { redirect: to.fullPath } };
     }
     if (to.meta.role && auth.role !== to.meta.role) {
       return auth.isStaff ? "/staff/home" : "/reader/loans";
