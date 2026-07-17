@@ -3,6 +3,7 @@ require("dotenv").config();
 const cors = require("cors");
 const connection = require("./config/database");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 
 const app = express();
 const port = process.env.PORT || 8888;
@@ -25,11 +26,14 @@ app.use(express.urlencoded({ extended: true }));
 //config cookie
 app.use(cookieParser());
 
-//config authenticate middleware
+// Static files
+app.use(express.static(path.join(__dirname, "dist")));
+
+// Authenticate
 const authenticate = require("./middleware/auth");
 app.use(authenticate);
 
-// Routes
+// API Routes
 app.use("/api/auth", require("./routes/auth.route"));
 app.use("/api/staff", require("./routes/staff.route"));
 app.use("/api/publishers", require("./routes/publisher.route"));
@@ -37,7 +41,12 @@ app.use("/api/books", require("./routes/book.route"));
 app.use("/api/monitor-loans", require("./routes/monitorLoan.route"));
 app.use("/api/readers", require("./routes/reader.route"));
 
-// Error handling middleware
+// SPA fallback - LUÔN đặt sau API
+app.get("/{*splat}", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
+
+// Error handler - CUỐI CÙNG
 const errorHandler = require("./middleware/errorHandler");
 app.use(errorHandler);
 
