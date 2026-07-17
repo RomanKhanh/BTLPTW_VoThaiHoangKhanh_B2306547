@@ -1,0 +1,1 @@
+import{P as e,Y as t,z as n}from"./index-nTA7Nfg7.js";var r={__name:`Spinner`,props:{size:{type:String,default:`h-6 w-6`}},setup(r){return(i,a)=>(n(),e(`div`,{class:t([r.size,`animate-spin rounded-full border-2 border-ink-200 border-t-brand-600`])},null,2))}};export{r as t};

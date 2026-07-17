@@ -56,11 +56,88 @@ function buildReaderTokens(reader) {
   };
 }
 
-exports.login = async ({ MSNV, MaDocGia, Password, accountId, username }) => {
+exports.login = async ({
+  MSNV,
+  MaDocGia,
+  Password,
+  accountId,
+  username,
+  accountType,
+  role,
+}) => {
   const loginId = MSNV || MaDocGia || accountId || username;
+  const requestedRole = (accountType || role || "")
+    .toString()
+    .trim()
+    .toLowerCase();
 
   if (!loginId || !Password) {
     throw { status: 400, message: "Thiếu thông tin đăng nhập" };
+  }
+
+  if (requestedRole === "staff") {
+    const staff = await Staff.findOne({ MSNV: loginId });
+    if (!staff) {
+      throw {
+        status: 401,
+        message:
+          "Mã nhân viên không tồn tại hoặc không thuộc khu vực đăng nhập nhân viên",
+      };
+    }
+
+    const isMatch = await staff.comparePassword(Password);
+    if (!isMatch) {
+      throw { status: 401, message: "Sai tài khoản hoặc mật khẩu" };
+    }
+
+    const tokens = buildStaffTokens(staff);
+
+    await RefreshToken.create({
+      token: tokens.refreshToken,
+      accountId: staff.MSNV,
+      role: tokens.role,
+      MSNV: staff.MSNV,
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL),
+    });
+
+    return tokens;
+  }
+
+  if (requestedRole === "reader") {
+    const reader = await Reader.findOne({ MaDocGia: loginId });
+    if (!reader) {
+      throw {
+        status: 401,
+        message:
+          "Mã độc giả không tồn tại hoặc không thuộc khu vực đăng nhập độc giả",
+      };
+    }
+
+    const isMatch = await reader.comparePassword(Password);
+    if (!isMatch) {
+      throw { status: 401, message: "Sai tài khoản hoặc mật khẩu" };
+    }
+
+    if (!reader.isActive) {
+      throw {
+        status: 403,
+        code: "ACCOUNT_PENDING",
+        message:
+          "Tài khoản của bạn đang chờ được duyệt. Vui lòng đăng nhập lại sau khi tài khoản đã được phê duyệt.",
+      };
+    }
+
+    const tokens = buildReaderTokens(reader);
+
+    await RefreshToken.create({
+      token: tokens.refreshToken,
+      accountId: reader.MaDocGia,
+      role: tokens.role,
+      MaDocGia: reader.MaDocGia,
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL),
+    });
+
+    return tokens;
   }
 
   const staff = await Staff.findOne({ MSNV: loginId });

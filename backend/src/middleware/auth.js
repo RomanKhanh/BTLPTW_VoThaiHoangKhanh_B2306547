@@ -4,7 +4,6 @@ const WHITELIST = [
   { path: "/api/auth/login", method: "POST" },
   { path: "/api/auth/refresh", method: "POST" },
   { path: "/api/auth/logout", method: "POST" },
-  { path: "/api/readers", method: "POST" },
 ];
 
 const isWhitelisted = (req) =>

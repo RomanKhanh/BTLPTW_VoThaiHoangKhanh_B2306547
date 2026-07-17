@@ -1,0 +1,1 @@
+import{g as e}from"./index-nTA7Nfg7.js";function t(t={}){return e.get(`/monitor-loans`,{params:t}).then(e=>e.data)}function n(t){return e.get(`/monitor-loans/${t}`).then(e=>e.data.data)}function r(t){return e.post(`/monitor-loans`,t).then(e=>e.data.data)}function i(t){return e.patch(`/monitor-loans/${t}`).then(e=>e.data.data)}export{i,t as n,n as r,r as t};

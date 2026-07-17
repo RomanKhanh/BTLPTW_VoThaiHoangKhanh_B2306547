@@ -22,10 +22,19 @@ async function handleSubmit() {
   loading.value = true;
   pendingMessage.value = "";
   try {
+    const accountType = tab.value === "reader" ? "reader" : "staff";
     const credentials =
       tab.value === "reader"
-        ? { MaDocGia: readerForm.MaDocGia, Password: readerForm.Password }
-        : { MSNV: staffForm.MSNV, Password: staffForm.Password };
+        ? {
+            MaDocGia: readerForm.MaDocGia,
+            Password: readerForm.Password,
+            accountType,
+          }
+        : {
+            MSNV: staffForm.MSNV,
+            Password: staffForm.Password,
+            accountType,
+          };
 
     const data = await apiLogin(credentials);
     auth.setSession({
@@ -39,7 +48,10 @@ async function handleSubmit() {
   } catch (err) {
     // Tài khoản chưa được duyệt — hiển thị thông báo inline thay vì toast
     const responseData = err?.response?.data;
-    if (err?.response?.status === 403 && responseData?.code === "ACCOUNT_PENDING") {
+    if (
+      err?.response?.status === 403 &&
+      responseData?.code === "ACCOUNT_PENDING"
+    ) {
       pendingMessage.value = responseData.message;
     } else {
       toast.error(extractErrorMessage(err, "Đăng nhập thất bại"));
@@ -86,7 +98,10 @@ async function handleSubmit() {
                 ? 'bg-white text-brand-700 shadow-sm'
                 : 'text-ink-500 hover:text-ink-700'
             "
-            @click="tab = 'reader'; pendingMessage = ''"
+            @click="
+              tab = 'reader';
+              pendingMessage = '';
+            "
           >
             Độc giả
           </button>
@@ -97,7 +112,10 @@ async function handleSubmit() {
                 ? 'bg-white text-brand-700 shadow-sm'
                 : 'text-ink-500 hover:text-ink-700'
             "
-            @click="tab = 'staff'; pendingMessage = ''"
+            @click="
+              tab = 'staff';
+              pendingMessage = '';
+            "
           >
             Nhân viên
           </button>

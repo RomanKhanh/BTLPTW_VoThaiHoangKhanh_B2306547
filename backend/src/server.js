@@ -26,22 +26,25 @@ app.use(express.urlencoded({ extended: true }));
 //config cookie
 app.use(cookieParser());
 
-// Static files
-app.use(express.static(path.join(__dirname, "dist")));
-
 // Authenticate
 const authenticate = require("./middleware/auth");
-app.use(authenticate);
+// app.use(authenticate);
 
 // API Routes
 app.use("/api/auth", require("./routes/auth.route"));
-app.use("/api/staff", require("./routes/staff.route"));
-app.use("/api/publishers", require("./routes/publisher.route"));
-app.use("/api/books", require("./routes/book.route"));
-app.use("/api/monitor-loans", require("./routes/monitorLoan.route"));
-app.use("/api/readers", require("./routes/reader.route"));
+app.use("/api/staff", authenticate, require("./routes/staff.route"));
+app.use("/api/publishers", authenticate, require("./routes/publisher.route"));
+app.use("/api/books", authenticate, require("./routes/book.route"));
+app.use(
+  "/api/monitor-loans",
+  authenticate,
+  require("./routes/monitorLoan.route"),
+);
+app.use("/api/readers", authenticate, require("./routes/reader.route"));
 
 // SPA fallback - LUÔN đặt sau API
+app.use(express.static(path.join(__dirname, "dist")));
+
 app.get("/{*splat}", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
