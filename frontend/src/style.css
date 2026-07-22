@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -24,7 +24,8 @@
   --color-ink-800: #1e293b;
   --color-ink-900: #0f172a;
 
-  --font-sans: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-sans:
+    "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 html,
@@ -37,6 +38,27 @@ body {
   background-color: var(--color-ink-50);
   color: var(--color-ink-800);
   font-family: var(--font-sans);
+}
+
+.page-transition {
+  height: 100%;
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.25s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 * {

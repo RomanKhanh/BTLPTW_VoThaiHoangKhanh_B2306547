@@ -47,7 +47,7 @@ async function handleLogout() {
   <div class="h-full flex bg-ink-50">
     <!-- Sidebar -->
     <aside
-      class="w-64 shrink-0 bg-ink-900 text-ink-100 flex flex-col shadow-xl"
+      class="w-64 h-full shrink-0 bg-ink-900 text-ink-100 flex flex-col shadow-xl overflow-hidden"
     >
       <div class="px-5 py-5 flex items-center gap-3 border-b border-white/5">
         <img
@@ -126,7 +126,7 @@ async function handleLogout() {
     </aside>
 
     <!-- Main content -->
-    <main class="flex-1 overflow-y-auto">
+    <main class="flex-1 h-full overflow-y-auto">
       <div class="max-w-6xl mx-auto px-6 py-6">
         <router-view />
       </div>

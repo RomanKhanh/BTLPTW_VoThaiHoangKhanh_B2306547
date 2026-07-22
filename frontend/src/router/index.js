@@ -117,6 +117,7 @@ router.beforeEach((to) => {
     return true;
   }
 
+  //No ma muon vao trang yeu cau auth ma chua dang nhap thi dua ve login va luu lai trang muon vao de redirect sau khi login thanh cong
   if (to.meta.requiresAuth) {
     if (!auth.isAuthenticated) {
       return { name: "login", query: { redirect: to.fullPath } };

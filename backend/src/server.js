@@ -30,6 +30,8 @@ app.use(cookieParser());
 const authenticate = require("./middleware/auth");
 // app.use(authenticate);
 
+app.use(express.static(path.join(__dirname, "dist")));
+
 // API Routes
 app.use("/api/auth", require("./routes/auth.route"));
 app.use("/api/staff", authenticate, require("./routes/staff.route"));
@@ -43,7 +45,7 @@ app.use(
 app.use("/api/readers", authenticate, require("./routes/reader.route"));
 
 // SPA fallback - LUÔN đặt sau API
-app.use(express.static(path.join(__dirname, "dist")));
+// app.use(express.static(path.join(__dirname, "dist")));
 
 app.get("/{*splat}", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
